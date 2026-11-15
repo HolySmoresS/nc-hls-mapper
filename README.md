@@ -62,6 +62,12 @@ Radar sends its own microwave pulse, so clouds don't block it. Calm open water r
 
 Reproduce with `src/radar.py` (downloads, about 15-30 minutes of NASA processing) and then `src/03_radar_flood_map.py`.
 
+## Step 4: the answer key (in progress)
+To grade the maps fairly, I label random spots by eye on NOAA airplane photos from Sept 19-20, 2018: water, not water, or can't tell.
+- 269 spots, picked at random from four groups (each map's flood, plus spots every map calls dry), so each map gets tested.
+- The labeling page is blind: it never shows which map picked a spot, and the order is shuffled.
+- Run it with `.venv/bin/python src/04_make_label_sample.py` (once), then `.venv/bin/python src/04_label_server.py` and open http://localhost:8765.
+
 ## Why these choices
 - **Florence first:** flat land and very wide floods, which suit 30 m pixels. The known risk is clouds right after the storm.
 - **Index before machine learning:** a simple baseline makes it possible to tell whether a fancier model actually helps.

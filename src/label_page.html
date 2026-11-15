@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flood Labeler</title>
+<style>
+  :root { --bg:#f7f7f5; --card:#ffffff; --text:#1d1d1b; --muted:#5f5e5a; --line:#d3d1c7;
+          --water:#185fa5; --land:#3b6d11; --unsure:#854f0b; --focus:#e0a800; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+          --bg:#1f1f1d; --card:#2c2c2a; --text:#f1efe8; --muted:#b4b2a9; --line:#444441;
+          --water:#85b7eb; --land:#97c459; --unsure:#ef9f27; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:18px/1.5 system-ui, sans-serif; }
+  main { max-width:720px; margin:0 auto; padding:16px; }
+  h1 { font-size:22px; font-weight:600; margin:0 0 4px; }
+  .q { font-size:20px; margin:8px 0 12px; }
+  .bar { height:10px; background:var(--line); border-radius:5px; overflow:hidden; }
+  .bar > div { height:100%; background:var(--water); width:0; transition:width .2s; }
+  .count { color:var(--muted); font-size:16px; margin:6px 0 12px; }
+  .photo { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:8px; text-align:center; }
+  .photo img { width:100%; max-width:450px; aspect-ratio:1; image-rendering:auto; border-radius:6px; }
+  .btns { display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin:14px 0; }
+  button { font:inherit; font-size:20px; font-weight:600; padding:16px 8px; border-radius:10px; border:2px solid; cursor:pointer; background:var(--card); }
+  button:focus-visible { outline:4px solid var(--focus); outline-offset:2px; }
+  .w { color:var(--water); border-color:var(--water); }
+  .l { color:var(--land); border-color:var(--land); }
+  .u { color:var(--unsure); border-color:var(--unsure); }
+  .key { display:block; font-size:14px; font-weight:400; color:var(--muted); }
+  .small { display:flex; justify-content:space-between; gap:10px; }
+  .small button { font-size:16px; padding:8px 14px; border-width:1px; color:var(--text); border-color:var(--line); }
+  details { margin-top:16px; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; }
+  summary { cursor:pointer; font-weight:600; }
+  li { margin:4px 0; }
+  .done { text-align:center; font-size:22px; padding:40px 0; }
+  .saved { color:var(--land); font-size:16px; min-height:24px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Flood labeler</h1>
+  <div class="q">Is the <b>yellow square</b> mostly water?</div>
+  <div class="bar"><div id="bar"></div></div>
+  <div class="count" id="count">Loading…</div>
+  <div id="work">
+    <div class="photo"><img id="img" alt="Airplane photo around one spot, with a yellow square marking 30 by 30 metres"></div>
+    <div class="btns">
+      <button class="w" data-label="water">Water<span class="key">key 1</span></button>
+      <button class="l" data-label="not_water">Not water<span class="key">key 2</span></button>
+      <button class="u" data-label="cant_tell">Can't tell<span class="key">key 3</span></button>
+    </div>
+    <div class="small">
+      <button id="back">← Back</button>
+      <span class="saved" id="saved"></span>
+    </div>
+  </div>
+  <details>
+    <summary>How to decide</summary>
+    <ul>
+      <li><b>Water</b>: water covers most of the square. Plants or tree tops sticking out of the water still count as water.</li>
+      <li><b>Not water</b>: ground, crops, grass, roads, roofs, or trees with dry ground under them.</li>
+      <li><b>Can't tell</b>: thick trees hide the ground, too dark, blurry, or the square is on the grey edge of the photo.</li>
+      <li>Look at the square only, not the rest of the photo. When unsure, choose Can't tell.</li>
+    </ul>
+  </details>
+</main>
+<script>
+let spots = [], labels = {}, i = 0;
+const $ = id => document.getElementById(id);
+
+async function start() {
+  const r = await fetch('/spots'); const d = await r.json();
+  spots = d.order; labels = d.labels;
+  i = spots.findIndex(s => !(s in labels)); if (i < 0) i = spots.length;
+  show();
+}
+function show() {
+  const n = Object.keys(labels).length;
+  $('bar').style.width = (100 * n / spots.length) + '%';
+  $('count').textContent = `${n} of ${spots.length} done`;
+  if (i >= spots.length) {
+    $('work').innerHTML = '<div class="done">All done. Thank you!<br>Tell Claude "labels done".</div>';
+    return;
+  }
+  $('img').src = `/chips/${spots[i]}.jpg`;
+  const prev = labels[spots[i]];
+  document.querySelectorAll('.btns button').forEach(b => b.style.background = (b.dataset.label === prev) ? 'var(--line)' : '');
+}
+async function choose(label) {
+  if (i >= spots.length) return;
+  const id = spots[i];
+  const r = await fetch('/label', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({id, label})});
+  if (!r.ok) { $('saved').textContent = 'Could not save. Is the server running?'; return; }
+  labels[id] = label; $('saved').textContent = 'Saved';
+  setTimeout(() => $('saved').textContent = '', 700);
+  i += 1; show();
+}
+document.querySelectorAll('.btns button').forEach(b => b.addEventListener('click', () => choose(b.dataset.label)));
+$('back').addEventListener('click', () => { if (i > 0) { i -= 1; show(); } });
+document.addEventListener('keydown', e => {
+  if (e.key === '1') choose('water'); else if (e.key === '2') choose('not_water');
+  else if (e.key === '3') choose('cant_tell'); else if (e.key === 'Backspace' || e.key === 'ArrowLeft') { if (i > 0) { i -= 1; show(); } }
+});
+// Preload the next photo so clicking feels instant.
+setInterval(() => { if (spots[i + 1]) new Image().src = `/chips/${spots[i + 1]}.jpg`; }, 500);
+start();
+</script>
+</body>
+</html>

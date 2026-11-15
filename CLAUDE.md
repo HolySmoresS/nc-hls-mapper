@@ -53,7 +53,8 @@ Map flood water from Hurricane Florence (September 2018) in eastern North Caroli
   - No ready-made radar flood map found for Lumberton. UAVSAR (airborne radar) flew the Lumber and Cape Fear rivers Sept 17-23, 2018 (Melancon et al. 2021, Remote Sensing 13:5098), but only raw radar images are public (ASF DAAC / JPL UAVSAR portal), so a radar map would have to be made by us. Copernicus EMS Sentinel-1 maps covered Jacksonville and Kinston, not Lumberton.
 - Step 3 DONE (Nov 15, 2026; user chose to make our own radar map, Sentinel-1): src/radar.py (HyP3 RTC download, coverage check), src/noaa.py (NOAA tile helper), src/03_radar_flood_map.py + notebooks/03_radar_flood_map.ipynb. Sentinel-1A path 77, Sept 7 vs Sept 19 (path 150 only grazed the box). Radar open water VV < -17 dB finds only 0.9 km2 new water; overlap with NIR maps 2-3%. NOAA spot check (12 spots): NIR-only spots are mostly real shallow/vegetated flood; radar "brightened" spots are dry fields. NIR looks closer to the truth so far.
 - HyP3/ASF needed a one-time Earthdata app approval (done by me).
-- NEXT: the real grade: random sample of spots + click-to-label page using NOAA Sept 19/20 photos; score both NIR maps and the radar map.
+- Step 4a DONE (Nov 15, 2026): src/04_make_label_sample.py picked 269 stratified spots (dark_nir 100, drop_only 50, radar_only 9, dry 110; seed 42) and saved NOAA photo chips to data/labels/ (git-ignored). src/04_label_server.py + src/label_page.html = blind, shuffled labeling page at http://localhost:8765; each click appends to data/labels/labels.csv (latest label per spot wins).
+- NEXT: I label the spots. Then Step 4b: score every map (dark-in-NIR, NIR-drop, radar) against my labels, with group-size weights. Copy labels.csv into results/ so my work is saved in git.
 
 ## Layout and running code
 - `src/hls.py` shared helpers; numbered scripts in `src/`; matching executed notebooks in `notebooks/`; plots in `figures/`; data in `data/` (git-ignored).

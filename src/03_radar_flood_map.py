@@ -66,7 +66,8 @@ def spot_check(cats_da, path, per_group=4, seed=0):
             im, px, py, day = res
             a = ax[k, got]
             a.imshow(im)
-            a.add_patch(plt.Rectangle((px - 12, py - 12), 24, 24, fill=False, ec="yellow", lw=2))
+            side = 30 / noaa.metres_per_pixel(lat)  # one 30 m pixel in photo pixels (about 30)
+            a.add_patch(plt.Rectangle((px - side / 2, py - side / 2), side, side, fill=False, ec="yellow", lw=2))
             a.set_title(f"{name}\n{lat:.4f}, {lon:.4f} (NOAA {day[4:6]}/{day[6:8]})", fontsize=9)
             got += 1
             if got == per_group:
