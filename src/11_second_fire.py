@@ -105,6 +105,35 @@ def both_fires(scores):
     return pd.concat([black_cove, great_lakes])[cols].reset_index(drop=True)
 
 
+def plot_both_fires(table, path):
+    """One chart for the whole burn phase: F1 of every map, for both pairs of both fires.
+
+    F1 is one number that is only high when "caught" and "right" are both high.
+    """
+    colors = {"textbook": "#bdbdbd", "histogram": "#636363", "fix A: look-alikes": "#9ecae1",
+              "fix B: ring": "#3182bd", step10.FIX_C: "#e6550d"}
+    table = table.assign(group=table["fire"] + "\n" + table["pair"] + " pair")
+    # Work F1 out again from caught and right, so a saved value like 0.825 is not rounded the wrong way.
+    table["F1"] = 2 * table["caught"] * table["right"] / (table["caught"] + table["right"])
+    groups = list(dict.fromkeys(table["group"]))
+    fig, ax = plt.subplots(figsize=(11, 4.4))
+    width = 0.16
+    for i, name in enumerate(MAPS):
+        d = table[table["map"] == name].set_index("group").loc[groups]
+        x = np.arange(len(groups)) + (i - 2) * width
+        ax.bar(x, d["F1"], width, color=colors[name], label=name)
+        for xi, v in zip(x, d["F1"]):
+            ax.text(xi, v + 0.015, f"{v:.2f}", ha="center", fontsize=7)
+    ax.set_xticks(np.arange(len(groups)), groups)
+    ax.set_ylim(0, 1.08)
+    ax.set_ylabel("F1 (high only if caught AND right are high)")
+    ax.set_title("Every burn map on both fires, graded against the official outlines")
+    ax.legend(fontsize=8, ncol=5, loc="upper center", bbox_to_anchor=(0.5, -0.16))
+    fig.tight_layout()
+    fig.savefig(path, dpi=130)
+    return fig
+
+
 def plot_scores(scores, path):
     fig, axes = plt.subplots(1, 2, figsize=(13, 4.4), sharey=True)
     for ax, (pair, d) in zip(axes, scores.groupby("pair", sort=False)):
@@ -182,7 +211,9 @@ def main():
 
     plot_scores(r["scores"], figs / "11_great_lakes_scores.png")
     plot_outcomes(r, figs / "11_great_lakes_outcomes.png")
-    print("\nSaved figures/11_great_lakes_first_look.png, 11_great_lakes_scores.png, 11_great_lakes_outcomes.png")
+    plot_both_fires(table, figs / "11_both_fires.png")
+    print("\nSaved figures/11_great_lakes_first_look.png, 11_great_lakes_scores.png, "
+          "11_great_lakes_outcomes.png, 11_both_fires.png")
 
 
 if __name__ == "__main__":

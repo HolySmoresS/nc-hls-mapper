@@ -1,12 +1,18 @@
-# North Carolina flood mapper (NASA HLS)
+# North Carolina flood and burn-scar mapper (NASA HLS)
 
-**Goal:** map the flood water that Hurricane Florence (September 2018) left around Lumberton, North Carolina, using NASA's Harmonized Landsat Sentinel-2 (HLS) satellite images, and measure honestly how good the maps are.
+**Goal:** map two kinds of disaster in North Carolina from NASA's Harmonized Landsat Sentinel-2 (HLS) satellite images, and measure honestly how good the maps are.
+- **Part 1, floods:** the water Hurricane Florence (September 2018) left around Lumberton.
+- **Part 2, burn scars:** two wildfires, one in the mountains (Black Cove Complex, March 2025) and one on the coast (Great Lakes fire, April 2023).
 
-**Result:** a simple near-infrared rule finds about **half of the real flood (44%)**, and about **half of what it calls flood is real (48%)**, graded against 269 spots I labeled by hand on NOAA airplane photos. It beat a textbook water index, a radar map and two machine-learning models.
+**Results:**
+- **Floods:** a simple near-infrared rule finds about **half of the real flood (44%)**, and about **half of what it calls flood is real (48%)**, graded against 269 spots I labeled by hand on NOAA airplane photos. It beat a textbook water index, a radar map and two machine-learning models.
+- **Burn scars:** a plain before-minus-after burn score catches **73% of the mountain fire and 83% of the coastal fire**, and is **right 84% and 98% of the time**, graded against the official fire outlines. Three corrections for the spring leaf season helped in one case and hurt in the others.
 
-**Status:** Project 1, version 1 (floods) complete. Phase 2 (burn scars): burn maps made and graded on two fires. A plain before-minus-after map catches 73% of the official burn on a mountain fire and 83 to 85% on a coastal one, and is right 84 to 98% of the time.
+**Status:** Part 1 (floods) complete. Part 2 (burn scars) mapped and graded on two fires.
 
 ## Summary
+
+**Floods**
 - The study area is a 23 x 17 km box around the Lumber River at Lumberton. It was the only one of three flooded river towns with a clear satellite photo soon after the storm (Sept 18, 2018, four days after landfall).
 - **Flood = water on Sept 18 that was not water on Sept 6.**
 - **The textbook method failed.** Standard water indexes (NDWI, MNDWI) found almost none of the flood, because the Lumber is a tea-colored blackwater river. Near-infrared light works for any water color.
@@ -15,7 +21,19 @@
 - **Machine learning did not beat the simple rule** when tested fairly, with whole areas hidden.
 - Biggest blind spot: **water under and beside trees**, which no clue I used can see.
 
+**Burn scars**
+- **Burned = the burn score (NBR) fell from before the fire to after.** Living leaves are bright in near-infrared and dark in shortwave infrared; burned ground is the reverse.
+- I chose the fire by measuring: of three candidates, the Black Cove Complex had a 100% clear photo one day before it started.
+- **The textbook cutoff failed when the photos were a month apart.** In that month the whole mountain landscape greened up, so "no change" was no longer zero. The map caught 16% of the burn.
+- **Timing beat method.** A photo taken one week into the fire, before the leaves came out, gave a far better map (73% caught) than any correction applied to the later photo.
+- **I found out why a correction failed, with NASA height data.** Higher ground greens up later, so unburned ridges looked "less green than normal". Comparing pixels at the same height nearly doubled the share of correct flags (26% to 48%).
+- **Then I tested that fix on a fire it had never seen, and it did not hold up.** On the flat coastal fire it was slightly worse than doing nothing special. The plain method passed that exam with no retuning.
+
+**The thread through both parts:** the textbook method broke wherever the place was unusual (tea-colored water, a mountain spring), a simple rule with an honest grade beat the fancier methods, and every fix had to earn its place on data it had not seen.
+
 ## Results
+
+### Floods
 Graded on my hand-labeled spots. "Caught" is the share of the real flood a map found. "Right" is the share of its flood that really was water. Scores are weighted for how many pixels each spot stands for; ranges are 95% ranges from re-drawing the spots 2,000 times.
 
 | Map | Caught | Right when it says flood | Overall accuracy |
@@ -34,7 +52,84 @@ Graded on my hand-labeled spots. "Caught" is the share of the real flood a map f
 
 Estimated real flood in the cloud-free part of the box: **about 12 km²**. This estimate is uncertain (see Limits).
 
-## How it works
+### Burn scars
+Graded on every usable 30 m pixel against the official fire outline. "Caught" is the share of the outline a map flagged. "Right" is the share of its flags that fall inside the outline. F1 is one number that is only high when both are high.
+
+| Fire | Photos | Map | Caught | Right | F1 |
+|---|---|---|---|---|---|
+| Black Cove (mountains) | 8 days apart, during the fire | textbook cutoff | 61% | 96% | 0.75 |
+| **Black Cove** | **8 days apart, during the fire** | **histogram cutoff** | **73%** | **84%** | **0.78** |
+| Black Cove | a month apart, after the fire | textbook cutoff | 16% | 99% | 0.27 |
+| Black Cove | a month apart, after the fire | histogram cutoff | 26% | 94% | 0.41 |
+| Black Cove | a month apart, after the fire | fix C: look-alikes at the same height | 52% | 48% | 0.50 |
+| **Great Lakes (coast)** | **16 days apart** | **textbook cutoff** | **83%** | **98%** | **0.90** |
+| Great Lakes | 16 days apart | histogram cutoff | 85% | 97% | 0.91 |
+| Great Lakes | 16 days apart | fix C: look-alikes at the same height | 79% | 97% | 0.87 |
+
+![F1 of every burn map on both fires](figures/11_both_fires.png)
+
+- **Gray bars (the two plain maps) are the best or tied for best everywhere except one case.**
+- **The orange bar (fix C) only wins in the case it was built for:** Black Cove with photos a month apart.
+- **Overall accuracy is useless here too.** Only 10% of the Black Cove box burned, so "say nothing burned" scores about 90%.
+- The Great Lakes rows are the fairest ones: every choice was fixed before I looked at that fire.
+
+## How I kept the testing honest
+
+**Floods**
+- **An independent answer key.** The labels come from airplane photos, a different camera from the satellite that made the maps.
+- **Blind labeling.** The labeling page never showed which map picked a spot.
+- **Checking the labeler.** I re-labeled 40 random spots a second time without seeing my first answers: same answer 65% of the time, 90% when neither pass said "can't tell". Using the second-look answers instead moves the grades by only 1-2 points.
+- **Cutoffs chosen before grading.** The near-infrared cutoff was picked from a histogram, never by looking at the labels.
+- **Practice exams by area, not by spot.** For machine learning, I cut the box into 16 blocks and hid whole blocks. Neighboring spots look almost the same, so hiding single spots lets a model peek. With shuffled spots, logistic regression looked better than it was (61% right instead of 50%). It is the same lesson as splitting by engine, not by row, in Project 0.
+- **A baseline that does nothing.** "Say dry everywhere" shows why overall accuracy can't be trusted here.
+
+**Burn scars**
+- **An official answer key I did not draw.** The fire outlines come from the fire agencies (NIFC).
+- **Cutoffs and fixes written down before scoring.** Both cutoffs come from the textbook or the histogram of the whole box, never from the outline. Each fix's rule was fixed before its grade was computed.
+- **A fix that peeked was labeled as one.** Fix C was designed after seeing where an earlier fix failed against the outline, so its Black Cove grade is not a fresh exam.
+- **So it got a fresh exam.** The whole recipe ran unchanged on a second fire, with the answer key, the photos and two predictions fixed first. One prediction held; one was only half right.
+- **An answer key that is not the method grading itself.** For the second fire I used the fire agencies' certified outline, because the other available outline (MTBS) is drawn from the same kind of satellite score, on the same dates.
+- **A guess stayed a guess until measured.** "Late green-up on high ground" was written as "likely, not proven" until height data confirmed it.
+
+## What failed
+
+**Floods**
+- **Textbook water indexes.** NDWI and MNDWI missed almost all of the flood on a blackwater river.
+- **Radar.** One band and one cutoff caught about 1% of the flood. Radar "brightening" turned out to be plowed fields, not water under trees.
+- **Machine learning.** Neither model beat the simple rule when tested fairly.
+- **My first cloud count.** It divided by the part of the box a tile covered, not the whole box, so a tile touching 2% of a box scored "97% clear". Fixed.
+- **My first radar pair.** The scenes only touched the corner of the box (6% and 0% coverage), so every pixel was blank and two processing jobs were wasted. The code now checks real coverage first.
+- **A drawing error.** The yellow square in my first photo check was drawn 24 m wide instead of 30 m. Fixed.
+- **Rushed labels.** My first labeling pass took about 2 seconds a spot and leaned toward "not water" on unclear spots. The second look showed this barely changes the grades, but it is a limit.
+
+**Burn scars**
+- **The textbook burn cutoff, with photos a month apart.** It caught 16% of the Black Cove burn, because spring green-up moved the whole landscape.
+- **Two leaf-season fixes (A and B).** They caught more of the burn, but about three of every four flags were wrong: unburned ridges that had not leafed out yet.
+- **Fix C as a general improvement.** It was the best map for one pair of photos and slightly worse than the plain map on the second fire. That burn was so large that one of its look-alike groups was 65% burned, so "normal" stopped meaning "unburned".
+- **My own expectation.** I sketched a spring fire as the easy case. The gap between burned and unburned forest is real, but the whole landscape moving at once is what breaks a plain cutoff.
+- **A crash on the second fire.** My cutoff helper assumed the change in burn score never exceeds 1. The most severe pixels of the Great Lakes fire do. Fixed; the first fire's numbers did not change.
+- **Pictures missing from a notebook.** My first burn notebook ran but showed none of its pictures. Fixed.
+
+## Limits of this work
+
+**Floods**
+- **One place, one day.** One 23 x 17 km box and one flood. The rule may not work elsewhere.
+- **Clouds.** 22% of the box was cloudy on one of the two days and is left out of every optical map.
+- **Wide uncertainty.** "Caught" for the best map could be anywhere from 26% to 82%. The real-flood estimate rests heavily on 2 "dry" spots I labeled water; each stands for about 3,000 pixels.
+- **One day apart.** The airplane photos are one day after the satellite photo, and the radar is 1.5 days after. Some water may have drained in between.
+- **Water under trees.** Optical satellites can't see it, and this simple radar rule didn't either.
+- **One labeler.** All labels are mine; nobody else checked them.
+
+**Burn scars**
+- **Two fires.** Better than one, still a small sample.
+- **An outline is not perfect truth.** Patches inside a fire outline often did not burn, so 100% caught is not possible. Green strips inside the Great Lakes outline suggest many "missed" pixels never burned.
+- **The Black Cove outline is "auto-generated",** not "certified", in the agency records.
+- **The best Black Cove map uses a photo taken during the fire.** Ground that burned after March 26 counts as "missed", which is unfair to that map.
+- **No ranges on the burn grades.** Every pixel is graded, so there is no sampling error to measure, but neighboring pixels are alike and the real uncertainty lies in the outlines.
+- **Unexplained:** below about 430 m the link between height and green-up reverses. The way a slope faces also matters, and I did not handle it.
+- **Burned or not, nothing more.** I did not map how severely each place burned.
+
+## Part 1: floods, step by step
 
 ### 1. Finding clear photos
 Clouds are the main problem around a hurricane. For three flooded river towns I read the HLS cloud mask (Fmask) for every photo from Aug 15 to Oct 10, 2018, and measured how much of each box was clear.
@@ -79,32 +174,7 @@ Two models learned "water or not water" from my labels, using 21 clues per pixel
 
 The models were pickier than the rule: right more often when they said flood (59% for the forest), but they missed about half of what the rule caught. On balance (F1 score) the rule wins, 0.46 to 0.34. The forest leaned on the same near-infrared clues as the rule; radar barely helped.
 
-## How I kept the testing honest
-- **An independent answer key.** The labels come from airplane photos, a different camera from the satellite that made the maps.
-- **Blind labeling.** The labeling page never showed which map picked a spot.
-- **Checking the labeler.** I re-labeled 40 random spots a second time without seeing my first answers: same answer 65% of the time, 90% when neither pass said "can't tell". Using the second-look answers instead moves the grades by only 1-2 points.
-- **Cutoffs chosen before grading.** The near-infrared cutoff was picked from a histogram, never by looking at the labels.
-- **Practice exams by area, not by spot.** For machine learning, I cut the box into 16 blocks and hid whole blocks. Neighboring spots look almost the same, so hiding single spots lets a model peek. With shuffled spots, logistic regression looked better than it was (61% right instead of 50%). It is the same lesson as splitting by engine, not by row, in Project 0.
-- **A baseline that does nothing.** "Say dry everywhere" shows why overall accuracy can't be trusted here.
-
-## What failed
-- **Textbook water indexes.** NDWI and MNDWI missed almost all of the flood on a blackwater river.
-- **Radar.** One band and one cutoff caught about 1% of the flood. Radar "brightening" turned out to be plowed fields, not water under trees.
-- **Machine learning.** Neither model beat the simple rule when tested fairly.
-- **My first cloud count.** It divided by the part of the box a tile covered, not the whole box, so a tile touching 2% of a box scored "97% clear". Fixed.
-- **My first radar pair.** The scenes only touched the corner of the box (6% and 0% coverage), so every pixel was blank and two processing jobs were wasted. The code now checks real coverage first.
-- **A drawing error.** The yellow square in my first photo check was drawn 24 m wide instead of 30 m. Fixed.
-- **Rushed labels.** My first labeling pass took about 2 seconds a spot and leaned toward "not water" on unclear spots. The second look showed this barely changes the grades, but it is a limit.
-
-## Limits of this work
-- **One place, one day.** One 23 x 17 km box and one flood. The rule may not work elsewhere.
-- **Clouds.** 22% of the box was cloudy on one of the two days and is left out of every optical map.
-- **Wide uncertainty.** "Caught" for the best map could be anywhere from 26% to 82%. The real-flood estimate rests heavily on 2 "dry" spots I labeled water; each stands for about 3,000 pixels.
-- **One day apart.** The airplane photos are one day after the satellite photo, and the radar is 1.5 days after. Some water may have drained in between.
-- **Water under trees.** Optical satellites can't see it, and this simple radar rule didn't either.
-- **One labeler.** All labels are mine; nobody else checked them.
-
-## Phase 2: burn scars (in progress)
+## Part 2: burn scars, step by step
 **Goal:** map a wildfire burn scar with the same code, and grade it against the official fire outline.
 
 **The idea.** Living leaves reflect a lot of near-infrared light; burned ground reflects less of it and more shortwave infrared. The Normalized Burn Ratio (NBR) compares the two. A big drop in NBR from before to after means burned.
@@ -197,7 +267,7 @@ Overall accuracy is useless again: only 10% of the box burned, so "say nothing b
 ![Every burn map colored by outcome](figures/09_burn_map_outcomes.png)
 
 - **Both fixes failed on the April pair.** They catch more of the burn, but about three of every four flags are wrong.
-- **The false alarms sit along the mountain ridges.** Likely reason (not proven): higher ground greens up later in spring, so on April 12 the ridges had not leafed out. To a "greened up less than normal" rule, that looks like a burn. I did not load height data to test this.
+- **The false alarms sit along the mountain ridges.** Likely reason (not proven): higher ground greens up later in spring, so on April 12 the ridges had not leafed out. To a "greened up less than normal" rule, that looks like a burn. Step 10 tests this with height data.
 - **Fix A did not beat fix B.** The before-fire score separates fields from pines, but not a ridge from a valley.
 - **On the March 26 pair the fixes change almost nothing,** because unburned land barely moved in 8 days.
 - **Timing beat method.** A photo taken days after the fire, before the leaves came out, gave a far better map than any correction applied to a later photo.

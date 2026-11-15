@@ -1,4 +1,4 @@
-# Project: North Carolina flood mapper from NASA HLS (Project 1)
+# Project: North Carolina flood and burn-scar mapper from NASA HLS (Project 1)
 
 ## Who I am
 Community college student, beginner at coding.
@@ -67,7 +67,8 @@ Map flood water from Hurricane Florence (September 2018) in eastern North Caroli
 - Step 10 DONE (Nov 15, 2026; I chose to test the ridge guess): src/terrain.py (NASADEM download to data/dem/, height on the HLS grid, slope facing) + src/10_ridge_check.py + notebooks/10_ridge_check.ipynb. Guess HOLDS: fix A's false-alarm rate is 44% above 687 m vs 1-2% below 500 m; slope facing matters less (north 11%, others 21-26%). Fix C (look-alikes by score before AND height, 10 x 5 groups): April caught 52%, right 48%, F1 0.50 = best April map, still far behind March 26 histogram (73% / 84%, F1 0.78). Fix C is not a fresh exam (designed after seeing fix A's mistakes). Below about 430 m the height pattern reverses (unexplained).
 - Step 11 DONE (Nov 15, 2026; I chose a second fire as a fresh exam): src/11_second_fire.py + notebooks/11_second_fire.ipynb. Great Lakes fire (Croatan NF, Apr 2023), answer key = NIFC certified final outline 130.1 km2 (fires.MORE_OUTLINES), Landsat pair Apr 18 -> May 4, Sentinel-2 pair Apr 10 -> May 10, recipe unchanged. Plain textbook cutoff: caught 83%, right 98% (F1 0.90). Fix C slightly WORSE than fix A (79% vs 85% caught): one look-alike group is 65% burned, so its median is no longer "unburned". Fixes add false alarms when there is little to fix. Bug fixed: triangle_cutoff now covers dNBR -2 to +2 (Black Cove numbers identical).
 - Burn-phase conclusion so far: a plain before-minus-after map from two photos close in time is the best map on both fires; leaf-season corrections only pay off when the season really moved, and fix C does not generalize as "always better".
-- NEXT: undecided. Options: (a) write up the burn phase (README is current step by step, but the summary/results/what-failed sections at the top still describe only the floods); (b) make look-alike groups safe for large fires; (c) slope facing; (d) join early + late maps; (e) the research write-up for the whole project. Ask me before choosing.
+- Burn write-up DONE (Nov 15, 2026): README top sections cover both parts (goal, results, summary, results tables, honesty, what failed, limits); steps are "Part 1: floods" and "Part 2: burn scars". Summary chart: figures/11_both_fires.png.
+- NEXT: undecided. Options: (a) the research-style write-up for the whole project; (b) make look-alike groups safe for large fires; (c) slope facing; (d) join early + late maps; (e) more fires; (f) back to flood ideas (more labels, Cape Fear). Ask me before choosing.
 
 ## Layout and running code
 - `src/hls.py` shared helpers; numbered scripts in `src/`; matching executed notebooks in `notebooks/`; plots in `figures/`; data in `data/` (git-ignored).
