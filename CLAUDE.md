@@ -41,7 +41,7 @@ Map flood water from Hurricane Florence (September 2018) in eastern North Caroli
 2. Week 2: NDWI/MNDWI, cutoff, water maps before and after, flood map = new water.
 3. Week 3: check accuracy against a reference; honest look at errors (clouds, shadows, cities).
 4. Week 4: machine learning on labeled pixels vs the index baseline; README write-up with a "what failed" section.
-5. Later: burn-scar mapping (NBR / dNBR) on a western NC wildfire with the same code.
+5. Phase 2 (started Nov 15, 2026): burn-scar mapping (NBR / dNBR) on the Black Cove Complex, western NC, with the same code.
 
 ## Current status (updated Nov 15, 2026)
 - Set up: folder, git repo, .venv (Python 3.12), packages. Earthdata account made and login saved in ~/.netrc (done by me).
@@ -59,7 +59,10 @@ Map flood water from Hurricane Florence (September 2018) in eastern North Caroli
 - Step 6 (Week 4 ML) DONE: src/features.py (21 clues, cached in data/06_features.npz) + src/06_machine_learning.py + notebooks/06_machine_learning.ipynb. By-area practice exams (4x4 blocks, 5 folds). Rule 44% / 48% recall/precision beats logistic regression 25% / 50% and random forest 23% / 59% (F1 0.46 vs 0.34). Random exams inflate precision (leak). ML did NOT beat the rule.
 - Write-up DONE (Nov 15, 2026): README is the full story (summary, results, method, honesty checks, what failed, limits, next steps, credits). 05_score_maps.py falls back to results/04_labels.csv on a fresh clone.
 - Project 1 version 1 COMPLETE.
-- NEXT: undecided. Options: more labels, Cape Fear as a second area, mask dark plowed fields (needs fresh labels), UAVSAR radar for water under trees, burn scars, or the research write-up. Ask me before choosing.
+- PHASE 2, BURN SCARS (started Nov 15, 2026). Choices I made: fire = Black Cove Complex if the photos allow (they do); answer key = official outline; scope = NBR rule + leaf-season check (compare with nearby unburned forest); machine learning only if the rule leaves room.
+- Step 7 DONE (Nov 15, 2026): src/fires.py (FIRES, outline download to data/fires/, box = outline + 3 km) + src/07_find_fire_photos.py + notebooks/07_find_fire_photos.ipynb. Good photos before / after: Black Cove 13 / 6, Tellico 2 / 3, Great Lakes 10 / 6. Black Cove box (-82.391, 35.227, -82.188, 35.379), tile T17SLV, fire started Mar 19, 2025, grew until about Mar 31; outline 31.1 km2 from NIFC WFIGS (three pieces: Black Cove, Deep Woods, Fish Hook; "auto-generated", not certified; not in MTBS).
+- Key Black Cove photos: before = Landsat Mar 18, 2025 (100%), Sentinel-2 Mar 11 (100%). During the fire = Mar 21, 23, 26 (lower-left lobe not burned yet on Mar 26). After it stopped = Sentinel-2 Apr 12 (80%) and Apr 20 (83%), then Jun 11 (96%, leaves out). An older burn sits at the bottom edge of the box in both photos (should not be flagged).
+- NEXT (burn step 2): NBR before and after, dNBR, cutoff from a histogram, burn map. Ask me first which "after" photo to use (Apr 12 / Apr 20 Sentinel-2 after the fire stopped, vs Mar 26 during it).
 
 ## Layout and running code
 - `src/hls.py` shared helpers; numbered scripts in `src/`; matching executed notebooks in `notebooks/`; plots in `figures/`; data in `data/` (git-ignored).

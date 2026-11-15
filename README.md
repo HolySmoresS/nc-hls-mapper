@@ -4,7 +4,7 @@
 
 **Result:** a simple near-infrared rule finds about **half of the real flood (44%)**, and about **half of what it calls flood is real (48%)**, graded against 269 spots I labeled by hand on NOAA airplane photos. It beat a textbook water index, a radar map and two machine-learning models.
 
-**Status:** Project 1, version 1 complete. Next: more labels, a second area, or burn scars.
+**Status:** Project 1, version 1 (floods) complete. Phase 2 (burn scars) has started: the fire is chosen, no burn map yet.
 
 ## Summary
 - The study area is a 23 x 17 km box around the Lumber River at Lumberton. It was the only one of three flooded river towns with a clear satellite photo soon after the storm (Sept 18, 2018, four days after landfall).
@@ -104,12 +104,44 @@ The models were pickier than the rule: right more often when they said flood (59
 - **Water under trees.** Optical satellites can't see it, and this simple radar rule didn't either.
 - **One labeler.** All labels are mine; nobody else checked them.
 
+## Phase 2: burn scars (in progress)
+**Goal:** map a wildfire burn scar with the same code, and grade it against the official fire outline.
+
+**The idea.** Living leaves reflect a lot of near-infrared light; burned ground reflects less of it and more shortwave infrared. The Normalized Burn Ratio (NBR) compares the two. A big drop in NBR from before to after means burned.
+
+### Step 7: choosing the fire
+Three candidates, each with an official outline: from NIFC (the fire agencies' shared outlines) or MTBS (a national archive of larger fires). Each downloaded outline matches the official size.
+
+![Official outlines of the three fires](figures/07_fire_outlines.png)
+
+For each box (the outline plus a 3 km margin of unburned land) I counted clear photos from 60 days before the fire to 90 days after, with the same 80% rule as Step 1.
+
+![Timeline of HLS photos per fire box](figures/07_fire_photos_timeline.png)
+
+| Fire | Outline | Good photos before | Closest before | Good photos after | First good after |
+|---|---|---|---|---|---|
+| **Black Cove Complex** (Polk County, March 2025, 31 km²) | NIFC | 13 | 1 day | 6 | day 2 (still burning) |
+| Tellico (November 2016, 57 km²) | MTBS | 2 | 20 days | 3 | day 23 |
+| Great Lakes (Croatan forest, April 2023, 126 km²) | MTBS | 10 | 1 day | 6 | day 1 (still burning) |
+
+**Chosen: Black Cove Complex.** It is a spring fire, so falling leaves cannot be mistaken for a burn, and it has a 100% clear photo one day before it started. Great Lakes is the backup.
+
+![Black Cove box before and during the fire, in false color](figures/07_black_cove_first_look.png)
+
+Shortwave infrared is shown as red, so burned ground looks red-brown. The scar fills the official outline (white).
+
+Honest notes:
+- **The early "after" photos are during the fire.** It grew until about March 31. On March 26 the lower-left lobe of the outline had not burned yet. After the fire stopped, the usable photos are April 12 (80% clear) and April 20 (83%).
+- **There is an older burn in the box.** The red patch at the bottom edge is in both photos. A before-minus-after rule should ignore it.
+- **Tellico has no good Landsat photo.** The edge of Landsat's flight path cuts through that box, so it often sees only 60-70% of it.
+- **The Black Cove outlines are "auto-generated"** in the NIFC records, not "certified".
+
 ## Next steps
 1. Label more spots to narrow the ranges.
 2. Try the rule on Cape Fear (Fayetteville), which was 79% clear on the same day.
 3. Remove dark plowed fields from the rule, tested on fresh labels.
 4. Longer-wave airborne radar (NASA UAVSAR flew the Lumber River on Sept 18-23, 2018) can see water under trees.
-5. Burn-scar mapping on a western NC wildfire with the same code.
+5. Burn scars (started): NBR before and after for the Black Cove Complex, a cutoff, and a grade against the official outline. Also test a correction for the season: compare the drop inside the burn with nearby unburned forest.
 
 ## Project layout
 | Path | What it is |
@@ -122,6 +154,8 @@ The models were pickier than the rule: right more often when they said flood (59
 | `src/04_make_label_sample.py`, `src/04_label_server.py` | Step 4: random spots and the blind labeling page |
 | `src/05_score_maps.py` | Step 5: grading every map against the labels |
 | `src/06_machine_learning.py` | Step 6: logistic regression and random forest vs the rule |
+| `src/fires.py` | Burn phase: candidate fires, official outlines, study boxes |
+| `src/07_find_fire_photos.py` | Step 7: clear photos per fire box; first look at the scar |
 | `notebooks/` | The same steps as notebooks, with explanations |
 | `figures/`, `results/` | Saved pictures and result tables (my labels: `results/04_labels.csv`) |
 | `LOG.md` | Experiment log: every step, its result, and what I learned |
@@ -136,6 +170,7 @@ python3.12 -m venv .venv                      # private package folder for this 
 .venv/bin/python src/03_radar_flood_map.py    # Step 3
 .venv/bin/python src/05_score_maps.py         # Step 5: grades (uses results/04_labels.csv)
 .venv/bin/python src/06_machine_learning.py   # Step 6
+.venv/bin/python src/07_find_fire_photos.py   # Step 7: burn phase, choose the fire (several minutes)
 ```
 Step 4 (only for new labels): run `src/04_make_label_sample.py` once, then `src/04_label_server.py` and open http://localhost:8765. Steps 5 and 6 use my saved labels in `results/04_labels.csv` when no new labels exist.
 
@@ -145,6 +180,7 @@ Data needs a free NASA Earthdata account (https://urs.earthdata.nasa.gov). Sign 
 - **NASA HLS v2.0** (HLSL30, HLSS30), from NASA's LP DAAC.
 - **Sentinel-1 radar:** contains modified Copernicus Sentinel data (2018), processed by ESA; terrain-corrected with ASF HyP3 (Alaska Satellite Facility).
 - **NOAA National Geodetic Survey** Hurricane Florence emergency response imagery (Sept 19-20, 2018).
+- **Fire outlines:** NIFC WFIGS Interagency Fire Perimeters (Black Cove Complex) and USDA Forest Service / USGS Monitoring Trends in Burn Severity (Tellico, Great Lakes).
 - No data files are stored in this repo.
 
 ## Related
