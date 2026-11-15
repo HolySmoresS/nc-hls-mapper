@@ -114,3 +114,53 @@ def clear_fraction(fmask, bbox):
     clear = seen & ((values & FMASK_CLOUD_BITS) == 0)
     total = box_pixels(bbox, fmask.rio.crs)
     return min(clear.sum() / total, 1.0), min(seen.sum() / total, 1.0)
+
+
+# ---------- Week 2: reflectance bands and water indexes ----------
+
+# Band names differ between the two satellites. We give them plain-English names.
+BANDS = {
+    "Sentinel-2": {"red": "B04", "green": "B03", "blue": "B02", "nir": "B8A", "swir1": "B11"},
+    "Landsat": {"red": "B04", "green": "B03", "blue": "B02", "nir": "B05", "swir1": "B06"},
+}
+REFLECTANCE_FILL = -9999  # HLS marks "no measurement" with this number
+
+
+def find_photo(bbox, date, satellite):
+    """The one HLS photo of the box on a given day from a given satellite (best-covering tile)."""
+    code = ".S30." if satellite == "Sentinel-2" else ".L30."
+    found = [g for g in search(bbox, date, date) if code in g["umm"]["GranuleUR"]]
+    if not found:
+        raise LookupError(f"no {satellite} photo on {date}")
+    # If the box touches several tiles, keep the one covering the most of it.
+    return max(found, key=lambda g: read_band(band_url(g, "Fmask"), bbox).size)
+
+
+def read_reflectance(granule, bbox, satellite, names=("green", "nir", "swir1")):
+    """Read bands as reflectance (share of light bounced back, 0 to 1). Fill values become NaN (blank)."""
+    out = {}
+    for name in names:
+        da = read_band(band_url(granule, BANDS[satellite][name]), bbox).astype("float32")
+        out[name] = da.where(da != REFLECTANCE_FILL) * 0.0001  # HLS stores reflectance x 10000
+    return out
+
+
+def usable_mask(fmask):
+    """True where the satellite saw the ground with no cloud, cloud shadow, or cloud edge."""
+    v = fmask.values
+    return (v != FMASK_NODATA) & ((v & FMASK_CLOUD_BITS) == 0)
+
+
+def normalized_difference(a, b):
+    """(a - b) / (a + b): always between -1 and +1. Used by NDWI and MNDWI."""
+    return (a - b) / (a + b)
+
+
+def ndwi(bands):
+    """Water index from green and near-infrared: water is bright green-ish, dark in NIR."""
+    return normalized_difference(bands["green"], bands["nir"])
+
+
+def mndwi(bands):
+    """Modified water index: uses shortwave infrared instead of NIR, often better near buildings."""
+    return normalized_difference(bands["green"], bands["swir1"])

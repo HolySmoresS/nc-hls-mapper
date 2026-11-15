@@ -1,0 +1,5 @@
+method,water before km2,water after km2,new flood km2
+NDWI > 0,1.1,0.5,0.2
+MNDWI > 0,1.6,1.8,1.0
+NIR < 0.1,2.3,13.5,11.3
+NIR after/before < 0.5,2.3,18.7,16.5

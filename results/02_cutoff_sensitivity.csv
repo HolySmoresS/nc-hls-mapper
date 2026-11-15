@@ -1,0 +1,11 @@
+rule,cutoff,new flood km2
+dark-in-NIR,0.05,5.2
+dark-in-NIR,0.08,8.7
+dark-in-NIR,0.1,11.3
+dark-in-NIR,0.12,14.2
+dark-in-NIR,0.15,20.5
+NIR-drop,0.3,8.3
+NIR-drop,0.4,11.9
+NIR-drop,0.5,16.5
+NIR-drop,0.6,23.4
+NIR-drop,0.7,37.7

@@ -2,7 +2,7 @@
 
 **Goal:** map flood water from Hurricane Florence (September 2018) in eastern North Carolina using NASA's Harmonized Landsat Sentinel-2 (HLS) satellite images.
 
-**Status:** Step 1 done: study area chosen (Lumber River at Lumberton). No flood map yet.
+**Status:** Week 2 done: first flood maps for the Lumber River at Lumberton. Accuracy not checked yet.
 
 ## Step 1: finding clear photos
 Clouds are the main problem around a hurricane. For three flooded river towns I read the HLS cloud mask (Fmask) for every photo from Aug 15 to Oct 10, 2018, and measured how much of each ~20-30 km box was clear.
@@ -23,10 +23,28 @@ Reproduce with `src/01_find_clear_photos.py` (about 5 minutes; needs the Earthda
 
 ## Plan
 1. Find cloud-free HLS images from before and after the storm.
-2. Water index + cutoff (NDWI / MNDWI) as a simple baseline.
+2. A water rule + cutoff as a simple baseline (textbook NDWI / MNDWI first; near-infrared rules after they failed).
 3. Flood map = water after the storm that was not water before.
 4. Check accuracy against a reference, then try machine learning on labeled pixels and see if it beats the baseline.
 5. Later: burn-scar mapping (NBR / dNBR) with the same code.
+
+## Step 2: water maps and first flood maps
+Flood = water on Sept 18, 2018 (4 days after landfall) that was not water on Sept 6. Both photos are Sentinel-2.
+
+![Three flood maps compared](figures/02_flood_maps_compared.png)
+
+| Method | New flood water |
+|---|---|
+| NDWI > 0 (textbook) | 0.2 km² |
+| MNDWI > 0 (textbook) | 1.0 km² |
+| Dark in near-infrared (NIR < 0.10) | 11.3 km² |
+| NIR fell by at least half | 16.5 km² |
+
+**What failed and why:** the textbook water indexes missed most of the flood. The Lumber is a blackwater river, stained tea-brown by leaves. Its water is darker in green light than in shortwave infrared, so the formulas call it land. Every kind of water is very dark in near-infrared, though: in flooded pixels it fell from 0.27 to 0.04.
+
+**Honest limits so far:** the two NIR rules agree on 10.7 km² (63% overlap). The histograms have no clean gap between water and land, so the area depends on the cutoff (5 to 21 km² for dark-in-NIR cutoffs 0.05 to 0.15). Water under thick tree cover may be invisible to any optical satellite. Accuracy has not been checked against a reference yet.
+
+Reproduce with `src/02_water_maps.py` (a minute or two).
 
 ## Why these choices
 - **Florence first:** flat land and very wide floods, which suit 30 m pixels. The known risk is clouds right after the storm.
