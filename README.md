@@ -4,7 +4,7 @@
 
 **Result:** a simple near-infrared rule finds about **half of the real flood (44%)**, and about **half of what it calls flood is real (48%)**, graded against 269 spots I labeled by hand on NOAA airplane photos. It beat a textbook water index, a radar map and two machine-learning models.
 
-**Status:** Project 1, version 1 (floods) complete. Phase 2 (burn scars) is in progress: burn maps made and graded. The best one catches 73% of the official burn and is right 84% of the time.
+**Status:** Project 1, version 1 (floods) complete. Phase 2 (burn scars): burn maps made and graded on two fires. A plain before-minus-after map catches 73% of the official burn on a mountain fire and 83 to 85% on a coastal one, and is right 84 to 98% of the time.
 
 ## Summary
 - The study area is a 23 x 17 km box around the Lumber River at Lumberton. It was the only one of three flooded river towns with a clear satellite photo soon after the storm (Sept 18, 2018, four days after landfall).
@@ -232,12 +232,40 @@ The guess from Step 9: higher ground greens up later, so on April 12 the ridges 
 - **Not a fresh exam:** fix C was designed after seeing where fix A failed against the outline.
 - On the March 26 pair fix C changes nothing, as expected.
 
+### Step 11: a fresh exam on a second fire
+Fix C was designed after seeing Black Cove's mistakes, so I ran the whole recipe, unchanged, on a fire it had never seen: the Great Lakes fire (Croatan National Forest, April 2023, about 130 km², flat coastal ground). Everything was fixed before looking at a burn pixel: the answer key (the fire agencies' certified final outline, not the satellite-derived MTBS one), two photo pairs, the same five maps, and two predictions.
+
+![Great Lakes box before and after, in false color](figures/11_great_lakes_first_look.png)
+
+| Great Lakes map | Landsat pair (Apr 18 to May 4) | Sentinel-2 pair (Apr 10 to May 10) |
+|---|---|---|
+| Textbook cutoff | caught 83%, right 98% | caught 82%, right 96% |
+| Histogram cutoff | 85%, 97% | 84%, 93% |
+| Fix A, look-alikes | 85%, 97% | 86%, 85% |
+| Fix B, ring | 85%, 97% | 87%, 84% |
+| Fix C, look-alikes + height | 79%, 97% | 82%, 83% |
+
+![Caught and right for every Great Lakes map](figures/11_great_lakes_scores.png)
+
+![Every Great Lakes map colored by outcome](figures/11_great_lakes_outcomes.png)
+
+- **The simple method passed the fresh exam.** With no retuning, the textbook cutoff scored F1 0.90 here, against 0.75 on Black Cove's best pair.
+- **Prediction "little leaf-season shift" held:** unburned land moved by only -0.04 in the Landsat pair.
+- **Prediction "fix C about equal to fix A" was only half right:** fix C was a little worse (caught 79% vs 85%). Height carries no information here (the box spans about 24 m).
+- **Why it was worse, measured:** this burn is so large that one of fix C's 50 look-alike groups is 65% burned. "Normal" is a group's middle value, so when most of a group burned, burned looks normal. On Black Cove the worst group was 30% burned.
+- **The fixes cost accuracy when there is little to fix:** in the Sentinel-2 pair all three added false alarms (about 20 km², against 5 for the textbook cutoff).
+- **Many "missed" pixels look unburned** in the photo (green strips inside the outline), so "caught" understates the maps.
+
+**What the burn phase adds up to:** a plain before-minus-after map from two photos taken close together was the best map on both fires. Corrections for the leaf season only pay off when the season really moved between the photos, and they bring their own mistakes.
+
+A bug this step found: my cutoff helper assumed the change in burn score never exceeds 1. The most severe pixels of this fire do, and the helper crashed. Fixed; Black Cove's numbers did not change.
+
 ## Next steps
 1. Label more spots to narrow the ranges.
 2. Try the rule on Cape Fear (Fayetteville), which was 79% clear on the same day.
 3. Remove dark plowed fields from the rule, tested on fresh labels.
 4. Longer-wave airborne radar (NASA UAVSAR flew the Lumber River on Sept 18-23, 2018) can see water under trees.
-5. Burn scars (in progress): add the way a slope faces to the look-alike groups; join the March 26 map with an April map for the part that burned later; test the whole recipe on a second fire.
+5. Burn scars: make the look-alike groups safe for large fires (they fail when most of a group burned); add the way a slope faces; join an early and a late map for fires that keep growing; try more fires.
 
 ## Project layout
 | Path | What it is |
@@ -255,6 +283,7 @@ The guess from Step 9: higher ground greens up later, so on April 12 the ridges 
 | `src/08_burn_maps.py` | Step 8: NBR, dNBR and burn maps from two pairs of photos |
 | `src/09_grade_burn_maps.py` | Step 9: grades against the official outline; two leaf-season fixes |
 | `src/terrain.py`, `src/10_ridge_check.py` | Step 10: NASA height data; is late green-up on high ground the cause? |
+| `src/11_second_fire.py` | Step 11: the unchanged recipe on the Great Lakes fire |
 | `notebooks/` | The same steps as notebooks, with explanations |
 | `figures/`, `results/` | Saved pictures and result tables (my labels: `results/04_labels.csv`) |
 | `LOG.md` | Experiment log: every step, its result, and what I learned |
@@ -273,6 +302,7 @@ python3.12 -m venv .venv                      # private package folder for this 
 .venv/bin/python src/08_burn_maps.py          # Step 8: burn maps (a minute or two)
 .venv/bin/python src/09_grade_burn_maps.py    # Step 9: grades and fixes (a minute or two)
 .venv/bin/python src/10_ridge_check.py        # Step 10: height check (a minute or two)
+.venv/bin/python src/11_second_fire.py       # Step 11: second fire (a few minutes)
 ```
 Step 4 (only for new labels): run `src/04_make_label_sample.py` once, then `src/04_label_server.py` and open http://localhost:8765. Steps 5 and 6 use my saved labels in `results/04_labels.csv` when no new labels exist.
 
@@ -282,7 +312,7 @@ Data needs a free NASA Earthdata account (https://urs.earthdata.nasa.gov). Sign 
 - **NASA HLS v2.0** (HLSL30, HLSS30), from NASA's LP DAAC.
 - **Sentinel-1 radar:** contains modified Copernicus Sentinel data (2018), processed by ESA; terrain-corrected with ASF HyP3 (Alaska Satellite Facility).
 - **NOAA National Geodetic Survey** Hurricane Florence emergency response imagery (Sept 19-20, 2018).
-- **Fire outlines:** NIFC WFIGS Interagency Fire Perimeters (Black Cove Complex) and USDA Forest Service / USGS Monitoring Trends in Burn Severity (Tellico, Great Lakes).
+- **Fire outlines:** NIFC WFIGS Interagency Fire Perimeters (Black Cove Complex; Great Lakes certified final outline) and USDA Forest Service / USGS Monitoring Trends in Burn Severity (Tellico, Great Lakes).
 - **Ground height:** NASADEM (NASA JPL), from NASA's LP DAAC.
 - No data files are stored in this repo.
 

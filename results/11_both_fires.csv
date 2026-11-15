@@ -1,0 +1,21 @@
+fire,pair,map,caught,right,F1
+Black Cove,April,textbook,0.157,0.993,0.272
+Black Cove,April,histogram,0.262,0.939,0.409
+Black Cove,April,fix A: look-alikes,0.422,0.257,0.32
+Black Cove,April,fix B: ring,0.366,0.325,0.344
+Black Cove,April,fix C: look-alikes + height,0.522,0.484,0.502
+Black Cove,March 26,textbook,0.613,0.958,0.747
+Black Cove,March 26,histogram,0.728,0.839,0.779
+Black Cove,March 26,fix A: look-alikes,0.646,0.944,0.767
+Black Cove,March 26,fix B: ring,0.641,0.945,0.764
+Black Cove,March 26,fix C: look-alikes + height,0.644,0.944,0.766
+Great Lakes,Landsat,textbook,0.832,0.984,0.902
+Great Lakes,Landsat,histogram,0.853,0.969,0.907
+Great Lakes,Landsat,fix A: look-alikes,0.849,0.972,0.906
+Great Lakes,Landsat,fix B: ring,0.854,0.967,0.907
+Great Lakes,Landsat,fix C: look-alikes + height,0.79,0.965,0.869
+Great Lakes,Sentinel-2,textbook,0.823,0.959,0.886
+Great Lakes,Sentinel-2,histogram,0.842,0.93,0.884
+Great Lakes,Sentinel-2,fix A: look-alikes,0.857,0.848,0.852
+Great Lakes,Sentinel-2,fix B: ring,0.87,0.844,0.856
+Great Lakes,Sentinel-2,fix C: look-alikes + height,0.819,0.832,0.825

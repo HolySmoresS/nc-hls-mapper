@@ -1,0 +1,3 @@
+pair,box usable,outline visible,"median change, whole box",top of the pile,histogram cutoff,normal change in the ring,"look-alike groups, lowest","look-alike groups, highest",fix A groups: most-burned group,fix A groups: groups over half burned,fix C groups: most-burned group,fix C groups: groups over half burned
+Landsat,92%,99%,-0.036,-0.035,0.055,-0.048,-0.061,0.036,50%,1 of 20,65%,1 of 50
+Sentinel-2,91%,100%,-0.071,-0.075,0.055,-0.096,-0.128,-0.016,42%,0 of 20,62%,1 of 50

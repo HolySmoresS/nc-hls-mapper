@@ -1,0 +1,11 @@
+pair,map,flagged km2,caught,right,F1,false alarms km2,overall accuracy
+Landsat,textbook,108.7,0.832,0.984,0.902,1.7,0.963
+Landsat,histogram,113.2,0.853,0.969,0.907,3.5,0.964
+Landsat,fix A: look-alikes,112.2,0.849,0.972,0.906,3.1,0.964
+Landsat,fix B: ring,113.7,0.854,0.967,0.907,3.8,0.964
+Landsat,fix C: look-alikes + height,105.2,0.79,0.965,0.869,3.6,0.951
+Sentinel-2,textbook,111.3,0.823,0.959,0.886,4.6,0.956
+Sentinel-2,histogram,117.3,0.842,0.93,0.884,8.2,0.954
+Sentinel-2,fix A: look-alikes,130.8,0.857,0.848,0.852,19.9,0.938
+Sentinel-2,fix B: ring,133.6,0.87,0.844,0.856,20.9,0.939
+Sentinel-2,fix C: look-alikes + height,127.5,0.819,0.832,0.825,21.4,0.928

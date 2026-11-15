@@ -11,6 +11,7 @@ import earthaccess
 import numpy as np
 import rioxarray
 from rasterio.enums import Resampling
+from rioxarray.merge import merge_arrays
 
 ROOT = Path(__file__).resolve().parents[1]
 DEM_DIR = ROOT / "data" / "dem"
@@ -38,10 +39,9 @@ def height_files(bbox):
 
 def height_like(band, bbox):
     """Ground height in metres on exactly the same pixel grid as a photo band."""
-    files = height_files(bbox)
-    if len(files) != 1:
-        raise NotImplementedError("this box needs more than one height square; join them first")
-    dem = rioxarray.open_rasterio(files[0], masked=True).squeeze("band", drop=True)
+    squares = [rioxarray.open_rasterio(f, masked=True).squeeze("band", drop=True) for f in height_files(bbox)]
+    # A box that crosses a whole-degree line needs two squares; join them into one sheet first.
+    dem = squares[0] if len(squares) == 1 else merge_arrays(squares)
     # The height map is in longitude/latitude; the photo is on a metre grid. "Bilinear" blends
     # the four nearest height values, which suits a smooth surface like the ground.
     return dem.rio.reproject_match(band, resampling=Resampling.bilinear).values.astype("float32")

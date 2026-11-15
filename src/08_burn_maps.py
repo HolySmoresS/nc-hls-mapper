@@ -91,11 +91,11 @@ def extent(band):
     return (x.min(), x.max(), y.min(), y.max())
 
 
-def draw_outline(ax, band, color="black"):
+def draw_outline(ax, band, color="black", name=None):
     from pyproj import Transformer
 
     t = Transformer.from_crs("EPSG:4326", band.rio.crs, always_xy=True)
-    shape = fires.outline(FIRE)
+    shape = fires.outline(name or FIRE)  # Black Cove unless another fire is named
     for piece in getattr(shape, "geoms", [shape]):
         ax.plot(*t.transform(*piece.exterior.xy), color=color, linewidth=1)
 

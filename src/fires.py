@@ -56,6 +56,21 @@ FIRES = {
     },
 }
 
+# Extra outlines that are not part of the step 7 comparison.
+# Great Lakes also has an outline from the fire agencies themselves: a certified "Final Fire
+# Perimeter" (32,156 acres). Unlike the MTBS one, it is not drawn from satellite burn scores,
+# so it is a fairer answer key for a satellite burn map.
+MORE_OUTLINES = {
+    "Great Lakes (Apr 2023), NIFC outline": {
+        "key": "great_lakes_nifc",
+        "source": "NIFC",
+        "url": NIFC,
+        "where": "poly_IncidentName = 'Great Lakes' AND attr_IncidentSize > 30000",
+        "near": (-77.5, 34.6, -76.7, 35.2),
+        "start": "2023-04-19",
+    },
+}
+
 MARGIN_KM = 3  # extra room around the outline, so the box also holds forest that did NOT burn
 ACRES_PER_KM2 = 247.105
 
@@ -81,7 +96,7 @@ def download_outline(fire):
 
 def outline(name):
     """The fire's outline as one shape (pieces joined). Downloads it the first time only."""
-    fire = FIRES[name]
+    fire = {**FIRES, **MORE_OUTLINES}[name]
     path = OUTLINE_DIR / f"{fire['key']}.geojson"
     if not path.exists():
         OUTLINE_DIR.mkdir(parents=True, exist_ok=True)
@@ -137,11 +152,13 @@ def triangle_cutoff(values, width=0.01, tail_pct=99.9):
     is where the histogram sags furthest below the string: the foot of the pile.
     Returns (cutoff, peak of the pile). It never needs the fire outline.
     """
-    edges = np.arange(-1, 1 + width, width)
+    # A score lies between -1 and +1, so a CHANGE in score can lie anywhere between -2 and +2.
+    # (The first version only covered -1 to +1 and crashed on a fire with very severe burns.)
+    edges = np.arange(-2, 2 + width, width)
     counts, _ = np.histogram(values, bins=edges)
     middles = edges[:-1] + width / 2
     peak = counts.argmax()
-    end = np.searchsorted(middles, np.percentile(values, tail_pct))
+    end = min(np.searchsorted(middles, np.percentile(values, tail_pct)), len(middles) - 1)
     x = np.arange(peak, end + 1)
     y = counts[peak:end + 1].astype(float)
     # Rescale both directions to 0..1 so "distance below the string" is fair.
