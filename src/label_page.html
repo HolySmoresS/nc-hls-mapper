@@ -65,12 +65,13 @@
   </details>
 </main>
 <script>
-let spots = [], labels = {}, i = 0;
+let spots = [], labels = {}, i = 0, mode = 'first';
 const $ = id => document.getElementById(id);
 
 async function start() {
   const r = await fetch('/spots'); const d = await r.json();
-  spots = d.order; labels = d.labels;
+  spots = d.order; labels = d.labels; mode = d.mode;
+  if (mode === 'recheck') { document.querySelector('h1').textContent = 'Second look (40 spots, take your time)'; }
   i = spots.findIndex(s => !(s in labels)); if (i < 0) i = spots.length;
   show();
 }
@@ -79,7 +80,8 @@ function show() {
   $('bar').style.width = (100 * n / spots.length) + '%';
   $('count').textContent = `${n} of ${spots.length} done`;
   if (i >= spots.length) {
-    $('work').innerHTML = '<div class="done">All done. Thank you!<br>Tell Claude "labels done".</div>';
+    const word = mode === 'recheck' ? 'recheck done' : 'labels done';
+    $('work').innerHTML = `<div class="done">All done. Thank you!<br>Tell Claude "${word}".</div>`;
     return;
   }
   $('img').src = `/chips/${spots[i]}.jpg`;

@@ -2,7 +2,7 @@
 
 **Goal:** map flood water from Hurricane Florence (September 2018) in eastern North Carolina using NASA's Harmonized Landsat Sentinel-2 (HLS) satellite images.
 
-**Status:** Week 3 in progress: flood maps from near-infrared and from radar, plus a first look at NOAA airplane photos. Full accuracy grade not done yet.
+**Status:** Week 3 done: flood maps from near-infrared and radar, graded against 269 hand-labeled spots on NOAA airplane photos.
 
 ## Step 1: finding clear photos
 Clouds are the main problem around a hurricane. For three flooded river towns I read the HLS cloud mask (Fmask) for every photo from Aug 15 to Oct 10, 2018, and measured how much of each ~20-30 km box was clear.
@@ -62,11 +62,30 @@ Radar sends its own microwave pulse, so clouds don't block it. Calm open water r
 
 Reproduce with `src/radar.py` (downloads, about 15-30 minutes of NASA processing) and then `src/03_radar_flood_map.py`.
 
-## Step 4: the answer key (in progress)
-To grade the maps fairly, I label random spots by eye on NOAA airplane photos from Sept 19-20, 2018: water, not water, or can't tell.
+## Step 4: the answer key
+To grade the maps fairly, I labeled random spots by eye on NOAA airplane photos from Sept 19-20, 2018: water, not water, or can't tell.
 - 269 spots, picked at random from four groups (each map's flood, plus spots every map calls dry), so each map gets tested.
 - The labeling page is blind: it never shows which map picked a spot, and the order is shuffled.
 - Run it with `.venv/bin/python src/04_make_label_sample.py` (once), then `.venv/bin/python src/04_label_server.py` and open http://localhost:8765.
+
+## Step 5: how good are the maps?
+![Recall and precision for each map](figures/05_map_scores.png)
+
+| Map | Caught (share of real flood found) | Right when it says flood | Overall accuracy |
+|---|---|---|---|
+| Say dry everywhere (baseline) | 0% | - | 96% |
+| Dark in near-infrared | 44% (26-82%) | 48% (38-59%) | 96% |
+| Near-infrared fell by half | 56% (33-100%) | 42% (33-50%) | 95% |
+| Radar, one band, one cutoff | 1% (0-4%) | too few spots | 96% |
+
+Ranges are 95% ranges from re-drawing the labeled spots 2,000 times. Scores are weighted for how many pixels each spot stands for.
+
+- **Overall accuracy is misleading:** most of the box is dry, so a map with no flood at all also scores 96%. That is why I report the other two grades.
+- **The near-infrared maps catch about half the flood and are right about half the time.** Misses are mostly water at tree edges and under trees. False alarms include dark plowed fields (bare soil is also dark in near-infrared), roofs and shadows.
+- **The simple radar rule caught almost nothing**: it only sees deep, open water.
+- **How trustworthy is the answer key?** I re-labeled 40 random spots blind: same answer 65% of the time, 90% when neither pass said "can't tell". My first pass was quick (about 2 seconds a spot) and leaned toward "not water" on unclear spots; using the second-look answers instead moves the grades by only 1-2 points.
+
+Reproduce with `src/05_score_maps.py` (labels are in `results/04_labels.csv`).
 
 ## Why these choices
 - **Florence first:** flat land and very wide floods, which suit 30 m pixels. The known risk is clouds right after the storm.
