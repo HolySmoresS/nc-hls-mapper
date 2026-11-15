@@ -47,7 +47,11 @@ Map flood water from Hurricane Florence (September 2018) in eastern North Caroli
 - Set up: folder, git repo, .venv (Python 3.12), packages. Earthdata account made and login saved in ~/.netrc (done by me).
 - Step 1 DONE: src/01_find_clear_photos.py + notebooks/01_find_clear_photos.ipynb counted clear photos per river; chose the Lumber River.
 - Step 2 (Week 2) DONE: src/02_water_maps.py + notebooks/02_water_maps.ipynb. Before = Sentinel-2 Sept 6, after = Sentinel-2 Sept 18 (same satellite and tile). Textbook NDWI/MNDWI > 0 FAILED (blackwater river is darker in green than SWIR). Two NIR rules: dark-in-NIR (NIR < 0.10) = 11.3 km2 new flood; NIR-drop (after/before < 0.5) = 16.5 km2; overlap 63%. Area depends strongly on the cutoff.
-- NEXT: Week 3, check accuracy. The reference map/labels are still NOT chosen; ask me (give options).
+- Week 3 plan (chosen Nov 14, 2026): BOTH (a) our own answer key: ~300 random spots I label water / not water / can't tell on zoomed photos (main grade), and (b) an existing radar-based flood map as a second opinion, if one covers Lumberton near Sept 18. Check NOAA NGS airplane photos (Sept 15-22, 2018) for Lumberton coverage to help labeling.
+- Findings (Nov 14, 2026):
+  - NOAA NGS airplane photos DO cover Lumberton: Sept 19, 2018 covers the town and river corridor (one day after our Sept 18 HLS photo); Sept 20 covers the downstream (southeast) part. Sept 18 and Sept 17 flights do not cover it. Sharp enough to see flooded fields and roads; hard to judge under tree cover. Tiles (XYZ): https://stormscdn.ngs.noaa.gov/20180919{a,b,c}-rgb/{z}/{x}/{y} (also 20180920...). Viewer: https://storms.ngs.noaa.gov/storms/florence/
+  - No ready-made radar flood map found for Lumberton. UAVSAR (airborne radar) flew the Lumber and Cape Fear rivers Sept 17-23, 2018 (Melancon et al. 2021, Remote Sensing 13:5098), but only raw radar images are public (ASF DAAC / JPL UAVSAR portal), so a radar map would have to be made by us. Copernicus EMS Sentinel-1 maps covered Jacksonville and Kinston, not Lumberton.
+- NEXT: ask me how to handle the radar second opinion; then build the sampling + click-to-label page using the NOAA Sept 19/20 photos.
 
 ## Layout and running code
 - `src/hls.py` shared helpers; numbered scripts in `src/`; matching executed notebooks in `notebooks/`; plots in `figures/`; data in `data/` (git-ignored).
