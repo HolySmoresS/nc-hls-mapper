@@ -2,7 +2,7 @@
 
 **Goal:** map flood water from Hurricane Florence (September 2018) in eastern North Carolina using NASA's Harmonized Landsat Sentinel-2 (HLS) satellite images.
 
-**Status:** Week 3 done: flood maps from near-infrared and radar, graded against 269 hand-labeled spots on NOAA airplane photos.
+**Status:** Week 4 done: flood maps from near-infrared, radar and machine learning, graded against 269 hand-labeled spots on NOAA airplane photos. The simple near-infrared rule is still the best map.
 
 ## Step 1: finding clear photos
 Clouds are the main problem around a hurricane. For three flooded river towns I read the HLS cloud mask (Fmask) for every photo from Aug 15 to Oct 10, 2018, and measured how much of each ~20-30 km box was clear.
@@ -86,6 +86,24 @@ Ranges are 95% ranges from re-drawing the labeled spots 2,000 times. Scores are 
 - **How trustworthy is the answer key?** I re-labeled 40 random spots blind: same answer 65% of the time, 90% when neither pass said "can't tell". My first pass was quick (about 2 seconds a spot) and leaned toward "not water" on unclear spots; using the second-look answers instead moves the grades by only 1-2 points.
 
 Reproduce with `src/05_score_maps.py` (labels are in `results/04_labels.csv`).
+
+## Step 6: can machine learning beat the rule?
+I trained two models on my labeled spots, using 21 clues per pixel (color bands before and after, water indexes, near-infrared change, radar). To test them fairly, I cut the box into 16 blocks; each practice exam hides whole blocks, so a model is never graded on spots right next to ones it studied.
+
+![Machine learning vs the near-infrared rule](figures/06_ml_vs_rule.png)
+
+| Map (graded by area) | Caught | Right when it says flood | F1 (balance of both) |
+|---|---|---|---|
+| **Dark-in-NIR rule** | **44%** | 48% | **0.46** |
+| Logistic regression | 25% | 50% | 0.34 |
+| Random forest | 23% | 59% | 0.34 |
+
+- **Machine learning did not beat the simple rule.** The models are pickier: right more often when they say flood, but they miss about half of what the rule catches.
+- **Random practice exams flatter the models:** logistic regression scores 61% "right when it says flood" with shuffled spots, but 50% when whole areas are hidden. Neighbouring spots leak answers, the same lesson as splitting by engine instead of by row in Project 0.
+- The forest leans on the same near-infrared clues as the rule; radar barely helps.
+- Likely reasons (not proven): only 255 labels (59 water), and no clue can see water under trees.
+
+Reproduce with `src/features.py` then `src/06_machine_learning.py`.
 
 ## Why these choices
 - **Florence first:** flat land and very wide floods, which suit 30 m pixels. The known risk is clouds right after the storm.

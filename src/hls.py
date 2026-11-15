@@ -120,8 +120,8 @@ def clear_fraction(fmask, bbox):
 
 # Band names differ between the two satellites. We give them plain-English names.
 BANDS = {
-    "Sentinel-2": {"red": "B04", "green": "B03", "blue": "B02", "nir": "B8A", "swir1": "B11"},
-    "Landsat": {"red": "B04", "green": "B03", "blue": "B02", "nir": "B05", "swir1": "B06"},
+    "Sentinel-2": {"red": "B04", "green": "B03", "blue": "B02", "nir": "B8A", "swir1": "B11", "swir2": "B12"},
+    "Landsat": {"red": "B04", "green": "B03", "blue": "B02", "nir": "B05", "swir1": "B06", "swir2": "B07"},
 }
 REFLECTANCE_FILL = -9999  # HLS marks "no measurement" with this number
 
