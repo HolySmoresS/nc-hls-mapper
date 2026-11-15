@@ -1,124 +1,151 @@
 # North Carolina flood mapper (NASA HLS)
 
-**Goal:** map flood water from Hurricane Florence (September 2018) in eastern North Carolina using NASA's Harmonized Landsat Sentinel-2 (HLS) satellite images.
+**Goal:** map the flood water that Hurricane Florence (September 2018) left around Lumberton, North Carolina, using NASA's Harmonized Landsat Sentinel-2 (HLS) satellite images, and measure honestly how good the maps are.
 
-**Status:** Week 4 done: flood maps from near-infrared, radar and machine learning, graded against 269 hand-labeled spots on NOAA airplane photos. The simple near-infrared rule is still the best map.
+**Result:** a simple near-infrared rule finds about **half of the real flood (44%)**, and about **half of what it calls flood is real (48%)**, graded against 269 spots I labeled by hand on NOAA airplane photos. It beat a textbook water index, a radar map and two machine-learning models.
 
-## Step 1: finding clear photos
-Clouds are the main problem around a hurricane. For three flooded river towns I read the HLS cloud mask (Fmask) for every photo from Aug 15 to Oct 10, 2018, and measured how much of each ~20-30 km box was clear.
+**Status:** Project 1, version 1 complete. Next: more labels, a second area, or burn scars.
+
+## Summary
+- The study area is a 23 x 17 km box around the Lumber River at Lumberton. It was the only one of three flooded river towns with a clear satellite photo soon after the storm (Sept 18, 2018, four days after landfall).
+- **Flood = water on Sept 18 that was not water on Sept 6.**
+- **The textbook method failed.** Standard water indexes (NDWI, MNDWI) found almost none of the flood, because the Lumber is a tea-colored blackwater river. Near-infrared light works for any water color.
+- **Radar saw almost none of the flood either.** Most of this flood was shallow, with plants and trees sticking out, which looks rough, like land, to radar.
+- **I built my own answer key:** 269 random spots, labeled blind on NOAA airplane photos taken one day after the satellite photo.
+- **Machine learning did not beat the simple rule** when tested fairly, with whole areas hidden.
+- Biggest blind spot: **water under and beside trees**, which no clue I used can see.
+
+## Results
+Graded on my hand-labeled spots. "Caught" is the share of the real flood a map found. "Right" is the share of its flood that really was water. Scores are weighted for how many pixels each spot stands for; ranges are 95% ranges from re-drawing the spots 2,000 times.
+
+| Map | Caught | Right when it says flood | Overall accuracy |
+|---|---|---|---|
+| Say dry everywhere (baseline) | 0% | - | 96% |
+| Textbook water index (MNDWI > 0) | - | - | finds 1.0 km² of flood; not graded |
+| **Dark in near-infrared (NIR < 0.10)** | **44%** (26-82%) | **48%** (38-59%) | 96% |
+| Near-infrared fell by half | 56% (33-100%) | 42% (33-50%) | 95% |
+| Radar (Sentinel-1, one band, one cutoff) | 1% (0-4%) | too few spots | 96% |
+| Logistic regression (graded by area) | 25% | 50% | 96% |
+| Random forest (graded by area) | 23% | 59% | 96% |
+
+![Recall and precision for each map](figures/05_map_scores.png)
+
+**Overall accuracy is useless here.** Almost the whole box is dry, so a map with no flood at all also scores 96%. That is why I report "caught" and "right" instead.
+
+Estimated real flood in the cloud-free part of the box: **about 12 km²**. This estimate is uncertain (see Limits).
+
+## How it works
+
+### 1. Finding clear photos
+Clouds are the main problem around a hurricane. For three flooded river towns I read the HLS cloud mask (Fmask) for every photo from Aug 15 to Oct 10, 2018, and measured how much of each box was clear.
 
 ![Timeline of HLS photos per river box](figures/01_clear_photos_timeline.png)
 
-| River box | Clear on Sept 18 (4 days after landfall) | Next photo at least 80% clear |
+| River box | Clear on Sept 18 | Next photo at least 80% clear |
 |---|---|---|
 | **Lumber (Lumberton)** | **86%** | Sept 18 |
 | Cape Fear (Fayetteville) | 79% | Oct 1 |
 | Neuse (Kinston) | 63% | Oct 3 |
 
-Only the Lumber River box had a clear photo soon after the storm, plus clear "before" photos (Aug 25, Sept 6), so it is the study area.
+Only the Lumber box had a clear photo soon after the storm, plus clear "before" photos, so it became the study area.
 
-**A mistake I caught:** my first count divided by the part of the box a tile covered, not the whole box. A tile touching only 2% of a box scored "97% clear". Fixed by always dividing by the whole box.
-
-Reproduce with `src/01_find_clear_photos.py` (about 5 minutes; needs the Earthdata login).
-
-## Plan
-1. Find cloud-free HLS images from before and after the storm.
-2. A water rule + cutoff as a simple baseline (textbook NDWI / MNDWI first; near-infrared rules after they failed).
-3. Flood map = water after the storm that was not water before.
-4. Check accuracy against a reference, then try machine learning on labeled pixels and see if it beats the baseline.
-5. Later: burn-scar mapping (NBR / dNBR) with the same code.
-
-## Step 2: water maps and first flood maps
-Flood = water on Sept 18, 2018 (4 days after landfall) that was not water on Sept 6. Both photos are Sentinel-2.
+### 2. Water maps and flood maps
+Before: Sept 6. After: Sept 18. Both photos are Sentinel-2, so any change comes from the ground, not from a camera change.
 
 ![Three flood maps compared](figures/02_flood_maps_compared.png)
 
-| Method | New flood water |
-|---|---|
-| NDWI > 0 (textbook) | 0.2 km² |
-| MNDWI > 0 (textbook) | 1.0 km² |
-| Dark in near-infrared (NIR < 0.10) | 11.3 km² |
-| NIR fell by at least half | 16.5 km² |
+- **Textbook indexes failed.** NDWI and MNDWI compare green light with infrared. Tea-colored blackwater is darker in green than in shortwave infrared, so the formulas call it land: they found 0.2 and 1.0 km².
+- **Near-infrared works for any water color.** In flooded pixels, near-infrared fell from 0.27 to 0.04. Two rules: "dark in near-infrared" (NIR < 0.10) found 11.3 km²; "near-infrared fell by half" found 16.5 km².
+- **The cutoff matters.** The histograms have no clean gap between water and land, so the area moves from 5 to 21 km² as the cutoff goes from 0.05 to 0.15. I picked 0.10 from the histogram, before looking at any labels.
 
-**What failed and why:** the textbook water indexes missed most of the flood. The Lumber is a blackwater river, stained tea-brown by leaves. Its water is darker in green light than in shortwave infrared, so the formulas call it land. Every kind of water is very dark in near-infrared, though: in flooded pixels it fell from 0.27 to 0.04.
-
-**Honest limits so far:** the two NIR rules agree on 10.7 km² (63% overlap). The histograms have no clean gap between water and land, so the area depends on the cutoff (5 to 21 km² for dark-in-NIR cutoffs 0.05 to 0.15). Water under thick tree cover may be invisible to any optical satellite. Accuracy has not been checked against a reference yet.
-
-Reproduce with `src/02_water_maps.py` (a minute or two).
-
-## Step 3: our own radar flood map
-Radar sends its own microwave pulse, so clouds don't block it. Calm open water reflects the pulse away and looks dark. I used Sentinel-1 radar from Sept 7 (before) and Sept 19 (after), processed by NASA's free HyP3 service.
+### 3. A radar flood map
+Radar sends its own microwave pulse, so clouds don't block it. Calm open water reflects the pulse away and looks dark. I used Sentinel-1 radar from Sept 7 and Sept 19, processed by NASA's free HyP3 service.
 
 ![Radar vs near-infrared flood map](figures/03_radar_vs_nir_map.png)
 
-- Radar found only **0.9 km²** of new open water, against 11.3 km² from near-infrared. The two maps overlap by only about 2-3%.
-- **NOAA airplane photos** from Sept 19-20 at 12 random spots: where both agree, it's deep open flood. Where only near-infrared says flood, it's mostly real shallow flood with plants or trees sticking out, which looks rough (land-like) to radar. Where radar got brighter, the photos show dry-looking plowed fields, not water under trees.
+Radar found only 0.9 km² of new open water. It agreed with the near-infrared maps on just 2-3% of the flagged area. The airplane photos explain why: where only near-infrared said flood, it was mostly shallow water with plants or trees sticking out, which radar sees as rough ground. Where radar got brighter, the photos show plowed fields, not hidden water.
+
+### 4. The answer key
+I labeled 269 random spots by eye on NOAA airplane photos from Sept 19-20, 2018, one day after the satellite photo: water, not water, or can't tell.
+- Spots were picked from four groups (each map's flood, plus spots every map called dry), so every map was tested. This is a **stratified sample**; the scores are corrected for group sizes.
+- The labeling page was **blind**: it never showed which map picked a spot, and the order was shuffled.
 
 ![NOAA airplane photos at random spots](figures/03_noaa_spot_check.png)
 
-**A mistake I caught:** my first radar pair only touched the corner of the box (6% and 0% coverage), so every pixel was blank. The script now checks real coverage before processing.
-
-**Caveats:** 12 spots is a quick look, not a grade. The radar is 1.5 days after the HLS photo, and I used one radar band with one cutoff.
-
-Reproduce with `src/radar.py` (downloads, about 15-30 minutes of NASA processing) and then `src/03_radar_flood_map.py`.
-
-## Step 4: the answer key
-To grade the maps fairly, I labeled random spots by eye on NOAA airplane photos from Sept 19-20, 2018: water, not water, or can't tell.
-- 269 spots, picked at random from four groups (each map's flood, plus spots every map calls dry), so each map gets tested.
-- The labeling page is blind: it never shows which map picked a spot, and the order is shuffled.
-- Run it with `.venv/bin/python src/04_make_label_sample.py` (once), then `.venv/bin/python src/04_label_server.py` and open http://localhost:8765.
-
-## Step 5: how good are the maps?
-![Recall and precision for each map](figures/05_map_scores.png)
-
-| Map | Caught (share of real flood found) | Right when it says flood | Overall accuracy |
-|---|---|---|---|
-| Say dry everywhere (baseline) | 0% | - | 96% |
-| Dark in near-infrared | 44% (26-82%) | 48% (38-59%) | 96% |
-| Near-infrared fell by half | 56% (33-100%) | 42% (33-50%) | 95% |
-| Radar, one band, one cutoff | 1% (0-4%) | too few spots | 96% |
-
-Ranges are 95% ranges from re-drawing the labeled spots 2,000 times. Scores are weighted for how many pixels each spot stands for.
-
-- **Overall accuracy is misleading:** most of the box is dry, so a map with no flood at all also scores 96%. That is why I report the other two grades.
-- **The near-infrared maps catch about half the flood and are right about half the time.** Misses are mostly water at tree edges and under trees. False alarms include dark plowed fields (bare soil is also dark in near-infrared), roofs and shadows.
-- **The simple radar rule caught almost nothing**: it only sees deep, open water.
-- **How trustworthy is the answer key?** I re-labeled 40 random spots blind: same answer 65% of the time, 90% when neither pass said "can't tell". My first pass was quick (about 2 seconds a spot) and leaned toward "not water" on unclear spots; using the second-look answers instead moves the grades by only 1-2 points.
-
-Reproduce with `src/05_score_maps.py` (labels are in `results/04_labels.csv`).
-
-## Step 6: can machine learning beat the rule?
-I trained two models on my labeled spots, using 21 clues per pixel (color bands before and after, water indexes, near-infrared change, radar). To test them fairly, I cut the box into 16 blocks; each practice exam hides whole blocks, so a model is never graded on spots right next to ones it studied.
+### 5. Machine learning
+Two models learned "water or not water" from my labels, using 21 clues per pixel: color bands before and after, water indexes, near-infrared change and radar. Logistic regression draws one straight dividing line; a random forest is 300 small decision trees that vote.
 
 ![Machine learning vs the near-infrared rule](figures/06_ml_vs_rule.png)
 
-| Map (graded by area) | Caught | Right when it says flood | F1 (balance of both) |
-|---|---|---|---|
-| **Dark-in-NIR rule** | **44%** | 48% | **0.46** |
-| Logistic regression | 25% | 50% | 0.34 |
-| Random forest | 23% | 59% | 0.34 |
+The models were pickier than the rule: right more often when they said flood (59% for the forest), but they missed about half of what the rule caught. On balance (F1 score) the rule wins, 0.46 to 0.34. The forest leaned on the same near-infrared clues as the rule; radar barely helped.
 
-- **Machine learning did not beat the simple rule.** The models are pickier: right more often when they say flood, but they miss about half of what the rule catches.
-- **Random practice exams flatter the models:** logistic regression scores 61% "right when it says flood" with shuffled spots, but 50% when whole areas are hidden. Neighbouring spots leak answers, the same lesson as splitting by engine instead of by row in Project 0.
-- The forest leans on the same near-infrared clues as the rule; radar barely helps.
-- Likely reasons (not proven): only 255 labels (59 water), and no clue can see water under trees.
+## How I kept the testing honest
+- **An independent answer key.** The labels come from airplane photos, a different camera from the satellite that made the maps.
+- **Blind labeling.** The labeling page never showed which map picked a spot.
+- **Checking the labeler.** I re-labeled 40 random spots a second time without seeing my first answers: same answer 65% of the time, 90% when neither pass said "can't tell". Using the second-look answers instead moves the grades by only 1-2 points.
+- **Cutoffs chosen before grading.** The near-infrared cutoff was picked from a histogram, never by looking at the labels.
+- **Practice exams by area, not by spot.** For machine learning, I cut the box into 16 blocks and hid whole blocks. Neighboring spots look almost the same, so hiding single spots lets a model peek. With shuffled spots, logistic regression looked better than it was (61% right instead of 50%). It is the same lesson as splitting by engine, not by row, in Project 0.
+- **A baseline that does nothing.** "Say dry everywhere" shows why overall accuracy can't be trusted here.
 
-Reproduce with `src/features.py` then `src/06_machine_learning.py`.
+## What failed
+- **Textbook water indexes.** NDWI and MNDWI missed almost all of the flood on a blackwater river.
+- **Radar.** One band and one cutoff caught about 1% of the flood. Radar "brightening" turned out to be plowed fields, not water under trees.
+- **Machine learning.** Neither model beat the simple rule when tested fairly.
+- **My first cloud count.** It divided by the part of the box a tile covered, not the whole box, so a tile touching 2% of a box scored "97% clear". Fixed.
+- **My first radar pair.** The scenes only touched the corner of the box (6% and 0% coverage), so every pixel was blank and two processing jobs were wasted. The code now checks real coverage first.
+- **A drawing error.** The yellow square in my first photo check was drawn 24 m wide instead of 30 m. Fixed.
+- **Rushed labels.** My first labeling pass took about 2 seconds a spot and leaned toward "not water" on unclear spots. The second look showed this barely changes the grades, but it is a limit.
 
-## Why these choices
-- **Florence first:** flat land and very wide floods, which suit 30 m pixels. The known risk is clouds right after the storm.
-- **Index before machine learning:** a simple baseline makes it possible to tell whether a fancier model actually helps.
-- **`earthaccess`:** searching and reading data in code makes every step repeatable.
+## Limits of this work
+- **One place, one day.** One 23 x 17 km box and one flood. The rule may not work elsewhere.
+- **Clouds.** 22% of the box was cloudy on one of the two days and is left out of every optical map.
+- **Wide uncertainty.** "Caught" for the best map could be anywhere from 26% to 82%. The real-flood estimate rests heavily on 2 "dry" spots I labeled water; each stands for about 3,000 pixels.
+- **One day apart.** The airplane photos are one day after the satellite photo, and the radar is 1.5 days after. Some water may have drained in between.
+- **Water under trees.** Optical satellites can't see it, and this simple radar rule didn't either.
+- **One labeler.** All labels are mine; nobody else checked them.
+
+## Next steps
+1. Label more spots to narrow the ranges.
+2. Try the rule on Cape Fear (Fayetteville), which was 79% clear on the same day.
+3. Remove dark plowed fields from the rule, tested on fresh labels.
+4. Longer-wave airborne radar (NASA UAVSAR flew the Lumber River on Sept 18-23, 2018) can see water under trees.
+5. Burn-scar mapping on a western NC wildfire with the same code.
+
+## Project layout
+| Path | What it is |
+|---|---|
+| `src/hls.py` | Shared helpers: login, search, read only the box, cloud mask, water indexes |
+| `src/radar.py`, `src/noaa.py`, `src/features.py` | Radar download (HyP3), NOAA airplane photos, per-pixel clues |
+| `src/01_find_clear_photos.py` | Step 1: clear photos per river box |
+| `src/02_water_maps.py` | Step 2: water indexes and near-infrared flood maps |
+| `src/03_radar_flood_map.py` | Step 3: radar flood map and comparison |
+| `src/04_make_label_sample.py`, `src/04_label_server.py` | Step 4: random spots and the blind labeling page |
+| `src/05_score_maps.py` | Step 5: grading every map against the labels |
+| `src/06_machine_learning.py` | Step 6: logistic regression and random forest vs the rule |
+| `notebooks/` | The same steps as notebooks, with explanations |
+| `figures/`, `results/` | Saved pictures and result tables (my labels: `results/04_labels.csv`) |
+| `LOG.md` | Experiment log: every step, its result, and what I learned |
 
 ## Setup
 ```bash
 python3.12 -m venv .venv                      # private package folder for this project
 .venv/bin/pip install -r requirements.txt     # exact package versions used
+.venv/bin/python src/01_find_clear_photos.py  # Step 1 (about 5 minutes)
+.venv/bin/python src/02_water_maps.py         # Step 2 (a minute or two)
+.venv/bin/python src/radar.py                 # radar download (15-30 minutes of NASA processing)
+.venv/bin/python src/03_radar_flood_map.py    # Step 3
+.venv/bin/python src/05_score_maps.py         # Step 5: grades (uses results/04_labels.csv)
+.venv/bin/python src/06_machine_learning.py   # Step 6
 ```
-Data needs a free NASA Earthdata account (https://urs.earthdata.nasa.gov). Sign in with `earthaccess.login()`; the login is saved in `~/.netrc`, outside this repo.
+Step 4 (only for new labels): run `src/04_make_label_sample.py` once, then `src/04_label_server.py` and open http://localhost:8765. Steps 5 and 6 use my saved labels in `results/04_labels.csv` when no new labels exist.
 
-## Data
-NASA HLS v2.0: HLSL30 (Landsat 8) and HLSS30 (Sentinel-2), from NASA LP DAAC. Not included in this repo.
+Data needs a free NASA Earthdata account (https://urs.earthdata.nasa.gov). Sign in once with `earthaccess.login()`; the login is saved in `~/.netrc`, outside this repo. The radar step also needs a one-time approval of the ASF HyP3 app in your Earthdata profile.
+
+## Data and credits
+- **NASA HLS v2.0** (HLSL30, HLSS30), from NASA's LP DAAC.
+- **Sentinel-1 radar:** contains modified Copernicus Sentinel data (2018), processed by ESA; terrain-corrected with ASF HyP3 (Alaska Satellite Facility).
+- **NOAA National Geodetic Survey** Hurricane Florence emergency response imagery (Sept 19-20, 2018).
+- No data files are stored in this repo.
 
 ## Related
 Project 0: [nasa-cmapss-rul](https://github.com/HolySmoresS/nasa-cmapss-rul), predicting jet-engine remaining life.

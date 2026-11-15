@@ -43,7 +43,7 @@ Map flood water from Hurricane Florence (September 2018) in eastern North Caroli
 4. Week 4: machine learning on labeled pixels vs the index baseline; README write-up with a "what failed" section.
 5. Later: burn-scar mapping (NBR / dNBR) on a western NC wildfire with the same code.
 
-## Current status (updated Nov 14, 2026)
+## Current status (updated Nov 15, 2026)
 - Set up: folder, git repo, .venv (Python 3.12), packages. Earthdata account made and login saved in ~/.netrc (done by me).
 - Step 1 DONE: src/01_find_clear_photos.py + notebooks/01_find_clear_photos.ipynb counted clear photos per river; chose the Lumber River.
 - Step 2 (Week 2) DONE: src/02_water_maps.py + notebooks/02_water_maps.ipynb. Before = Sentinel-2 Sept 6, after = Sentinel-2 Sept 18 (same satellite and tile). Textbook NDWI/MNDWI > 0 FAILED (blackwater river is darker in green than SWIR). Two NIR rules: dark-in-NIR (NIR < 0.10) = 11.3 km2 new flood; NIR-drop (after/before < 0.5) = 16.5 km2; overlap 63%. Area depends strongly on the cutoff.
@@ -57,7 +57,9 @@ Map flood water from Hurricane Florence (September 2018) in eastern North Caroli
 - Labels DONE (Nov 15, 2026): 269 spots first pass (about 2 s each), plus a blind second look at 40 random spots (`04_label_server.py --recheck`, saved to labels_recheck.csv). Both saved in results/04_labels.csv (no click times).
 - Step 5 DONE: src/05_score_maps.py + notebooks/05_score_maps.ipynb. Weighted recall / precision: dark-in-NIR 44% / 48%, NIR-drop 56% / 42%, both NIR 43% / 49%, radar 1% / n.a. Overall accuracy 96% = same as "say dry everywhere" (misleading). Self-agreement 65% (90% without can't-tell). Real flood about 12 km2 in cloud-free box, uncertain.
 - Step 6 (Week 4 ML) DONE: src/features.py (21 clues, cached in data/06_features.npz) + src/06_machine_learning.py + notebooks/06_machine_learning.ipynb. By-area practice exams (4x4 blocks, 5 folds). Rule 44% / 48% recall/precision beats logistic regression 25% / 50% and random forest 23% / 59% (F1 0.46 vs 0.34). Random exams inflate precision (leak). ML did NOT beat the rule.
-- NEXT: undecided. Options: README write-up with honest "what failed" (Week 4 milestone), more labels, improve the rule (mask dark plowed fields; needs fresh labels), threshold tuning with nested practice exams, Cape Fear as a second area, or burn scars. Ask me before choosing.
+- Write-up DONE (Nov 15, 2026): README is the full story (summary, results, method, honesty checks, what failed, limits, next steps, credits). 05_score_maps.py falls back to results/04_labels.csv on a fresh clone.
+- Project 1 version 1 COMPLETE.
+- NEXT: undecided. Options: more labels, Cape Fear as a second area, mask dark plowed fields (needs fresh labels), UAVSAR radar for water under trees, burn scars, or the research write-up. Ask me before choosing.
 
 ## Layout and running code
 - `src/hls.py` shared helpers; numbered scripts in `src/`; matching executed notebooks in `notebooks/`; plots in `figures/`; data in `data/` (git-ignored).

@@ -34,11 +34,17 @@ SEED = 0
 def load(use_second_look=False):
     """One row per spot: group, my label, and what each map said there.
     use_second_look=True swaps in my second-look answer for the 40 re-labeled spots (a robustness check)."""
-    s = pd.read_csv(LABELS / "sample.csv")
-    first = pd.read_csv(LABELS / "labels.csv").groupby("id")["label"].last()
-    s["label"] = s["id"].map(first)
-    if use_second_look and (LABELS / "labels_recheck.csv").exists():
-        second = pd.read_csv(LABELS / "labels_recheck.csv").groupby("id")["label"].last()
+    if (LABELS / "labels.csv").exists():
+        s = pd.read_csv(LABELS / "sample.csv")
+        first = pd.read_csv(LABELS / "labels.csv").groupby("id")["label"].last()
+        s["label"] = s["id"].map(first)
+        second = (pd.read_csv(LABELS / "labels_recheck.csv").groupby("id")["label"].last()
+                  if (LABELS / "labels_recheck.csv").exists() else pd.Series(dtype=object))
+    else:  # fresh clone: use the copy of my labels saved in git
+        s = pd.read_csv(ROOT / "results" / "04_labels.csv")
+        s["label"] = s["label_first_pass"]
+        second = s.set_index("id")["label_second_look"].dropna()
+    if use_second_look:
         s["label"] = s["id"].map(second).fillna(s["label"])
     dark = rioxarray.open_rasterio(ROOT / "data" / "02_flood_dark_nir.tif").squeeze(drop=True).values
     drop = rioxarray.open_rasterio(ROOT / "data" / "02_flood_nir_drop.tif").squeeze(drop=True).values
@@ -122,10 +128,13 @@ def plot_scores(table, ranges, path):
 
 def self_agreement(s):
     path = LABELS / "labels_recheck.csv"
-    if not path.exists():
-        print("\n(No second-look file yet: self-agreement skipped.)")
+    if path.exists():
+        second = pd.read_csv(path).groupby("id")["label"].last()
+    elif (ROOT / "results" / "04_labels.csv").exists():
+        second = pd.read_csv(ROOT / "results" / "04_labels.csv").set_index("id")["label_second_look"].dropna()
+    else:
+        print("\n(No second-look labels: self-agreement skipped.)")
         return None
-    second = pd.read_csv(path).groupby("id")["label"].last()
     both = s.set_index("id")["label"].reindex(second.index)
     tab = pd.crosstab(both.rename("first pass"), second.rename("second look"))
     agree = (both == second).mean()
