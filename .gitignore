@@ -1,0 +1,20 @@
+# Satellite data is big and re-downloadable: never commit it
+data/
+*.tif
+*.tiff
+*.nc
+*.h5
+*.zip
+
+# Python environment and caches
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+
+# Secrets: NASA Earthdata login lives in ~/.netrc (outside this repo); ignore copies anyway
+.netrc
+_netrc
+.env
+*.token
+
+.DS_Store
