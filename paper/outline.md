@@ -61,7 +61,7 @@ About 150 words. Must contain:
 - Labeler check: same answer 65%, 90% without can't-tell (`05_self_agreement.csv`).
 
 ### 5. Results: burn scars
-- **Figure 4:** `figures/09_burn_map_outcomes.png` or `figures/10_ridge_check.png` (pick one; ridge check tells the "why" story).
+- **Figure 4:** `figures/10_ridge_check.png` (tells the "why" story).
 - **Figure 5:** `figures/11_both_fires.png` (F1 of all maps, both fires).
 - **Table 2:** the 8 rows from the README burn table (`11_both_fires.csv`).
 - Points: a month apart, textbook caught 16%; 8 days apart, 73%; height explains ridge false alarms; fix C best only where it was built, worse on Great Lakes (79% vs 85% caught).
@@ -85,7 +85,7 @@ About 150 words. Must contain:
 - UAVSAR on Florence: Melancon et al., 2021, Remote Sensing 13:5098.
 - Data credits: same list as the README "Data and credits" section.
 
-## Open questions for me (the author)
-1. Title: keep the working title, or one of the other two?
-2. Figure 4: outcome map, or ridge check?
-3. Make the new locator map (Figure 1)? It needs a small script + notebook.
+## Decisions (Nov 15, 2026)
+1. Title: the working title, "When the textbook method breaks: ...".
+2. Figure 4: the ridge check, `figures/10_ridge_check.png`.
+3. Figure 1: YES, make the new locator map (`src/12_locator_map.py` + notebook, no new analysis).
