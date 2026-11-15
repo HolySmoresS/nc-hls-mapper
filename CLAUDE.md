@@ -51,7 +51,9 @@ Map flood water from Hurricane Florence (September 2018) in eastern North Caroli
 - Findings (Nov 14, 2026):
   - NOAA NGS airplane photos DO cover Lumberton: Sept 19, 2018 covers the town and river corridor (one day after our Sept 18 HLS photo); Sept 20 covers the downstream (southeast) part. Sept 18 and Sept 17 flights do not cover it. Sharp enough to see flooded fields and roads; hard to judge under tree cover. Tiles (XYZ): https://stormscdn.ngs.noaa.gov/20180919{a,b,c}-rgb/{z}/{x}/{y} (also 20180920...). Viewer: https://storms.ngs.noaa.gov/storms/florence/
   - No ready-made radar flood map found for Lumberton. UAVSAR (airborne radar) flew the Lumber and Cape Fear rivers Sept 17-23, 2018 (Melancon et al. 2021, Remote Sensing 13:5098), but only raw radar images are public (ASF DAAC / JPL UAVSAR portal), so a radar map would have to be made by us. Copernicus EMS Sentinel-1 maps covered Jacksonville and Kinston, not Lumberton.
-- NEXT: ask me how to handle the radar second opinion; then build the sampling + click-to-label page using the NOAA Sept 19/20 photos.
+- Step 3 DONE (Nov 15, 2026; user chose to make our own radar map, Sentinel-1): src/radar.py (HyP3 RTC download, coverage check), src/noaa.py (NOAA tile helper), src/03_radar_flood_map.py + notebooks/03_radar_flood_map.ipynb. Sentinel-1A path 77, Sept 7 vs Sept 19 (path 150 only grazed the box). Radar open water VV < -17 dB finds only 0.9 km2 new water; overlap with NIR maps 2-3%. NOAA spot check (12 spots): NIR-only spots are mostly real shallow/vegetated flood; radar "brightened" spots are dry fields. NIR looks closer to the truth so far.
+- HyP3/ASF needed a one-time Earthdata app approval (done by me).
+- NEXT: the real grade: random sample of spots + click-to-label page using NOAA Sept 19/20 photos; score both NIR maps and the radar map.
 
 ## Layout and running code
 - `src/hls.py` shared helpers; numbered scripts in `src/`; matching executed notebooks in `notebooks/`; plots in `figures/`; data in `data/` (git-ignored).

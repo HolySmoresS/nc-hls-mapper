@@ -2,7 +2,7 @@
 
 **Goal:** map flood water from Hurricane Florence (September 2018) in eastern North Carolina using NASA's Harmonized Landsat Sentinel-2 (HLS) satellite images.
 
-**Status:** Week 2 done: first flood maps for the Lumber River at Lumberton. Accuracy not checked yet.
+**Status:** Week 3 in progress: flood maps from near-infrared and from radar, plus a first look at NOAA airplane photos. Full accuracy grade not done yet.
 
 ## Step 1: finding clear photos
 Clouds are the main problem around a hurricane. For three flooded river towns I read the HLS cloud mask (Fmask) for every photo from Aug 15 to Oct 10, 2018, and measured how much of each ~20-30 km box was clear.
@@ -45,6 +45,22 @@ Flood = water on Sept 18, 2018 (4 days after landfall) that was not water on Sep
 **Honest limits so far:** the two NIR rules agree on 10.7 km² (63% overlap). The histograms have no clean gap between water and land, so the area depends on the cutoff (5 to 21 km² for dark-in-NIR cutoffs 0.05 to 0.15). Water under thick tree cover may be invisible to any optical satellite. Accuracy has not been checked against a reference yet.
 
 Reproduce with `src/02_water_maps.py` (a minute or two).
+
+## Step 3: our own radar flood map
+Radar sends its own microwave pulse, so clouds don't block it. Calm open water reflects the pulse away and looks dark. I used Sentinel-1 radar from Sept 7 (before) and Sept 19 (after), processed by NASA's free HyP3 service.
+
+![Radar vs near-infrared flood map](figures/03_radar_vs_nir_map.png)
+
+- Radar found only **0.9 km²** of new open water, against 11.3 km² from near-infrared. The two maps overlap by only about 2-3%.
+- **NOAA airplane photos** from Sept 19-20 at 12 random spots: where both agree, it's deep open flood. Where only near-infrared says flood, it's mostly real shallow flood with plants or trees sticking out, which looks rough (land-like) to radar. Where radar got brighter, the photos show dry-looking plowed fields, not water under trees.
+
+![NOAA airplane photos at random spots](figures/03_noaa_spot_check.png)
+
+**A mistake I caught:** my first radar pair only touched the corner of the box (6% and 0% coverage), so every pixel was blank. The script now checks real coverage before processing.
+
+**Caveats:** 12 spots is a quick look, not a grade. The radar is 1.5 days after the HLS photo, and I used one radar band with one cutoff.
+
+Reproduce with `src/radar.py` (downloads, about 15-30 minutes of NASA processing) and then `src/03_radar_flood_map.py`.
 
 ## Why these choices
 - **Florence first:** flat land and very wide floods, which suit 30 m pixels. The known risk is clouds right after the storm.
