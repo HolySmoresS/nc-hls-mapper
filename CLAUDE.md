@@ -68,7 +68,13 @@ Map flood water from Hurricane Florence (September 2018) in eastern North Caroli
 - Step 11 DONE (Nov 15, 2026; I chose a second fire as a fresh exam): src/11_second_fire.py + notebooks/11_second_fire.ipynb. Great Lakes fire (Croatan NF, Apr 2023), answer key = NIFC certified final outline 130.1 km2 (fires.MORE_OUTLINES), Landsat pair Apr 18 -> May 4, Sentinel-2 pair Apr 10 -> May 10, recipe unchanged. Plain textbook cutoff: caught 83%, right 98% (F1 0.90). Fix C slightly WORSE than fix A (79% vs 85% caught): one look-alike group is 65% burned, so its median is no longer "unburned". Fixes add false alarms when there is little to fix. Bug fixed: triangle_cutoff now covers dNBR -2 to +2 (Black Cove numbers identical).
 - Burn-phase conclusion so far: a plain before-minus-after map from two photos close in time is the best map on both fires; leaf-season corrections only pay off when the season really moved, and fix C does not generalize as "always better".
 - Burn write-up DONE (Nov 15, 2026): README top sections cover both parts (goal, results, summary, results tables, honesty, what failed, limits); steps are "Part 1: floods" and "Part 2: burn scars". Summary chart: figures/11_both_fires.png.
-- NEXT: undecided. Options: (a) the research-style write-up for the whole project; (b) make look-alike groups safe for large fires; (c) slope facing; (d) join early + late maps; (e) more fires; (f) back to flood ideas (more labels, Cape Fear). Ask me before choosing.
+- NEXT (chosen Nov 15, 2026): the research-style write-up for the whole project. NOT started. Before writing anything, ask me these, with 2-3 options and a recommendation each:
+  1. Who it is for and what it is for (NASA internship applications, transfer essays, a class, a poster?).
+  2. Scope: Project 1 only (floods + burn scars), or Project 0 (jet engines, repo `../nasa-cmapss-rul`) as well.
+  3. Format and length (short paper with abstract / methods / results / limits, a 2-page summary, a poster, slides).
+  4. Where it lives (a `paper/` folder here, or its own repo).
+  Source material: README.md (full story, all numbers checked against results/*.csv on Nov 15), LOG.md (every experiment, including failures), figures/ (figures/11_both_fires.png and figures/05_map_scores.png are the two summary charts). Do not invent or re-derive numbers; take them from results/*.csv. It is my write-up in my voice: draft in short plain sentences, and have me explain each section back before it is final.
+- Other open ideas (not chosen): (b) make look-alike groups safe for large fires; (c) slope facing; (d) join early + late maps; (e) more fires; (f) back to flood ideas (more labels, Cape Fear). Ask me before choosing.
 
 ## Layout and running code
 - `src/hls.py` shared helpers; numbered scripts in `src/`; matching executed notebooks in `notebooks/`; plots in `figures/`; data in `data/` (git-ignored).
