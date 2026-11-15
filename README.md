@@ -4,7 +4,7 @@
 
 **Result:** a simple near-infrared rule finds about **half of the real flood (44%)**, and about **half of what it calls flood is real (48%)**, graded against 269 spots I labeled by hand on NOAA airplane photos. It beat a textbook water index, a radar map and two machine-learning models.
 
-**Status:** Project 1, version 1 (floods) complete. Phase 2 (burn scars) has started: the fire is chosen, no burn map yet.
+**Status:** Project 1, version 1 (floods) complete. Phase 2 (burn scars) is in progress: first burn maps made, not graded yet.
 
 ## Summary
 - The study area is a 23 x 17 km box around the Lumber River at Lumberton. It was the only one of three flooded river towns with a clear satellite photo soon after the storm (Sept 18, 2018, four days after landfall).
@@ -136,12 +136,44 @@ Honest notes:
 - **Tellico has no good Landsat photo.** The edge of Landsat's flight path cuts through that box, so it often sees only 60-70% of it.
 - **The Black Cove outlines are "auto-generated"** in the NIFC records, not "certified".
 
+### Step 8: first burn maps
+dNBR = NBR before minus NBR after. I made the map from two pairs of photos, each pair from one satellite:
+
+| Pair | Before | After | Trade-off |
+|---|---|---|---|
+| April | Sentinel-2, March 11 | Sentinel-2, April 12 | Fire had stopped, but 22% cloud and trees leafing out |
+| March 26 | Landsat, March 18 | Landsat, March 26 | 100% clear, but the fire was still growing |
+
+![NBR before and after, and the change, for both pairs](figures/08_nbr_before_after.png)
+
+Each pair got two cutoffs, both fixed without looking at the official outline: the textbook one (dNBR > 0.10) and one read from the histogram (the triangle method: the foot of the big "nothing changed" pile).
+
+![Histograms of dNBR with both cutoffs](figures/08_histograms.png)
+
+| Pair | Cutoff | Flagged as burned |
+|---|---|---|
+| April | textbook, +0.10 | 4.4 km² |
+| April | histogram, +0.025 | 7.7 km² |
+| March 26 | textbook, +0.10 | 19.8 km² |
+| March 26 | histogram, +0.055 | 26.9 km² |
+
+The official outline holds 31 km².
+
+![Four burn maps with the official outline](figures/08_burn_maps_compared.png)
+
+- **The textbook cutoff fails on the April pair.** In one month the whole landscape greened up (median NBR rose from 0.12 to 0.32), so "no change" is no longer at zero. The leaf season gets in the way, like blackwater did for the textbook water index.
+- **A histogram cutoff helps a little, not enough.** Fields, pines and leafy forest each greened up by a different amount, so one cutoff for the whole box cannot separate the burn.
+- **The March 26 pair is much cleaner,** but it misses the lower-left lobe (not burned yet), and the lower cutoff adds speckles on farmland.
+- **The two maps overlap only 25%.** Almost everything April flags, March 26 flags too (6.2 of 7.7 km²).
+- **The April burn is still visible to the eye:** pale and red inside a deep-blue forest. It stands out against its neighbors, which is the idea for the next step.
+- **Not graded yet.** The outline is drawn for the eye only.
+
 ## Next steps
 1. Label more spots to narrow the ranges.
 2. Try the rule on Cape Fear (Fayetteville), which was 79% clear on the same day.
 3. Remove dark plowed fields from the rule, tested on fresh labels.
 4. Longer-wave airborne radar (NASA UAVSAR flew the Lumber River on Sept 18-23, 2018) can see water under trees.
-5. Burn scars (started): NBR before and after for the Black Cove Complex, a cutoff, and a grade against the official outline. Also test a correction for the season: compare the drop inside the burn with nearby unburned forest.
+5. Burn scars (in progress): grade the four burn maps against the official outline, and test a correction for the season: compare each pixel with nearby unburned forest instead of with zero.
 
 ## Project layout
 | Path | What it is |
@@ -156,6 +188,7 @@ Honest notes:
 | `src/06_machine_learning.py` | Step 6: logistic regression and random forest vs the rule |
 | `src/fires.py` | Burn phase: candidate fires, official outlines, study boxes |
 | `src/07_find_fire_photos.py` | Step 7: clear photos per fire box; first look at the scar |
+| `src/08_burn_maps.py` | Step 8: NBR, dNBR and burn maps from two pairs of photos |
 | `notebooks/` | The same steps as notebooks, with explanations |
 | `figures/`, `results/` | Saved pictures and result tables (my labels: `results/04_labels.csv`) |
 | `LOG.md` | Experiment log: every step, its result, and what I learned |
@@ -171,6 +204,7 @@ python3.12 -m venv .venv                      # private package folder for this 
 .venv/bin/python src/05_score_maps.py         # Step 5: grades (uses results/04_labels.csv)
 .venv/bin/python src/06_machine_learning.py   # Step 6
 .venv/bin/python src/07_find_fire_photos.py   # Step 7: burn phase, choose the fire (several minutes)
+.venv/bin/python src/08_burn_maps.py          # Step 8: burn maps (a minute or two)
 ```
 Step 4 (only for new labels): run `src/04_make_label_sample.py` once, then `src/04_label_server.py` and open http://localhost:8765. Steps 5 and 6 use my saved labels in `results/04_labels.csv` when no new labels exist.
 

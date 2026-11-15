@@ -164,3 +164,16 @@ def ndwi(bands):
 def mndwi(bands):
     """Modified water index: uses shortwave infrared instead of NIR, often better near buildings."""
     return normalized_difference(bands["green"], bands["swir1"])
+
+
+# ---------- Burn-scar phase: burn index ----------
+
+FMASK_WATER_BIT = 1 << 5  # Fmask's own guess that a pixel is water (lakes confuse the burn index)
+
+
+def nbr(bands):
+    """Normalized Burn Ratio from near-infrared and the longer shortwave infrared (swir2).
+
+    Living leaves: bright in NIR, dark in SWIR, so NBR is high. Burned ground: the reverse, so NBR is low.
+    """
+    return normalized_difference(bands["nir"], bands["swir2"])

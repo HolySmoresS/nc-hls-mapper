@@ -11,7 +11,10 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-from pyproj import Geod
+import numpy as np
+import shapely
+from pyproj import Geod, Transformer
+from rasterio.features import geometry_mask
 from shapely.geometry import shape
 from shapely.ops import unary_union
 
@@ -102,6 +105,39 @@ def box_around(geom, margin_km=MARGIN_KM):
     dlat = margin_km / 111.0
     dlon = margin_km / 91.0
     return (round(west - dlon, 3), round(south - dlat, 3), round(east + dlon, 3), round(north + dlat, 3))
+
+
+
+def outline_mask(geom, band):
+    """True for every pixel of a photo band that lies inside the outline.
+
+    The outline is in longitude/latitude; the photo uses a metre grid, so the outline is converted first.
+    """
+    t = Transformer.from_crs("EPSG:4326", band.rio.crs, always_xy=True)
+    moved = shapely.transform(geom, lambda xy: np.column_stack(t.transform(xy[:, 0], xy[:, 1])))
+    return geometry_mask([moved], out_shape=band.shape, transform=band.rio.transform(), invert=True)
+
+
+def triangle_cutoff(values, width=0.01, tail_pct=99.9):
+    """A cutoff picked from the histogram alone (the "triangle method", Zack and others, 1977).
+
+    Most pixels did not burn, so the histogram is one big pile with a long tail on the right
+    (the burn). Stretch a string from the top of the pile to the end of the tail. The cutoff
+    is where the histogram sags furthest below the string: the foot of the pile.
+    Returns (cutoff, peak of the pile). It never needs the fire outline.
+    """
+    edges = np.arange(-1, 1 + width, width)
+    counts, _ = np.histogram(values, bins=edges)
+    middles = edges[:-1] + width / 2
+    peak = counts.argmax()
+    end = np.searchsorted(middles, np.percentile(values, tail_pct))
+    x = np.arange(peak, end + 1)
+    y = counts[peak:end + 1].astype(float)
+    # Rescale both directions to 0..1 so "distance below the string" is fair.
+    xs = (x - x[0]) / (x[-1] - x[0])
+    ys = y / y[0]
+    string = 1 + (ys[-1] - 1) * xs
+    return float(middles[x[(string - ys).argmax()]]), float(middles[peak])
 
 
 if __name__ == "__main__":
