@@ -40,7 +40,7 @@ About 150 words. Must contain:
 - Contributions: (1) a hand-made blind answer key, (2) a fresh-exam test of a fix, (3) a list of what failed.
 
 ### 2. Study areas and data
-- **Figure 1 (NEW, to make):** NC locator map with the 3 boxes (Lumberton, Black Cove, Great Lakes).
+- **Figure 1:** `figures/12_locator_map.png` (made in Step 12): NC with the 3 boxes.
 - HLS v2.0 (HLSL30, HLSS30), 30 m. Fmask for clouds.
 - Helpers: NOAA airplane photos (flood answer key), Sentinel-1 radar via HyP3, NIFC fire outlines, NASADEM height.
 - Photo choice: clear share over the whole box (`01_summary.csv`: Lumber 4 days after landfall vs 17 and 19).
@@ -88,4 +88,4 @@ About 150 words. Must contain:
 ## Decisions (Nov 15, 2026)
 1. Title: the working title, "When the textbook method breaks: ...".
 2. Figure 4: the ridge check, `figures/10_ridge_check.png`.
-3. Figure 1: YES, make the new locator map (`src/12_locator_map.py` + notebook, no new analysis).
+3. Figure 1: YES, the new locator map. DONE: `src/12_locator_map.py` + `notebooks/12_locator_map.ipynb`.

@@ -354,6 +354,8 @@ A bug this step found: my cutoff helper assumed the change in burn score never e
 | `src/09_grade_burn_maps.py` | Step 9: grades against the official outline; two leaf-season fixes |
 | `src/terrain.py`, `src/10_ridge_check.py` | Step 10: NASA height data; is late green-up on high ground the cause? |
 | `src/11_second_fire.py` | Step 11: the unchanged recipe on the Great Lakes fire |
+| `src/12_locator_map.py` | Step 12: locator map of the three study boxes (paper, Figure 1) |
+| `paper/` | The research-style write-up (outline so far) |
 | `notebooks/` | The same steps as notebooks, with explanations |
 | `figures/`, `results/` | Saved pictures and result tables (my labels: `results/04_labels.csv`) |
 | `LOG.md` | Experiment log: every step, its result, and what I learned |
@@ -373,6 +375,7 @@ python3.12 -m venv .venv                      # private package folder for this 
 .venv/bin/python src/09_grade_burn_maps.py    # Step 9: grades and fixes (a minute or two)
 .venv/bin/python src/10_ridge_check.py        # Step 10: height check (a minute or two)
 .venv/bin/python src/11_second_fire.py       # Step 11: second fire (a few minutes)
+.venv/bin/python src/12_locator_map.py       # Step 12: locator map for the paper (seconds)
 ```
 Step 4 (only for new labels): run `src/04_make_label_sample.py` once, then `src/04_label_server.py` and open http://localhost:8765. Steps 5 and 6 use my saved labels in `results/04_labels.csv` when no new labels exist.
 
@@ -384,6 +387,7 @@ Data needs a free NASA Earthdata account (https://urs.earthdata.nasa.gov). Sign 
 - **NOAA National Geodetic Survey** Hurricane Florence emergency response imagery (Sept 19-20, 2018).
 - **Fire outlines:** NIFC WFIGS Interagency Fire Perimeters (Black Cove Complex; Great Lakes certified final outline) and USDA Forest Service / USGS Monitoring Trends in Burn Severity (Tellico, Great Lakes).
 - **Ground height:** NASADEM (NASA JPL), from NASA's LP DAAC.
+- **State outlines:** U.S. Census Bureau TIGERweb (locator map only).
 - No data files are stored in this repo.
 
 ## Related
