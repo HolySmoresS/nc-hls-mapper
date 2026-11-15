@@ -50,6 +50,9 @@ Map flood water from Hurricane Florence (September 2018) in eastern North Caroli
 - `src/hls.py` shared helpers; numbered scripts in `src/`; matching executed notebooks in `notebooks/`; plots in `figures/`; data in `data/` (git-ignored).
 - Run code with `.venv/bin/python`.
 
+## Repo
+GitHub: https://github.com/HolySmoresS/nc-hls-mapper (public). Commit and push to origin/main after each working step.
+
 ## Rules for this repo
 - Log every experiment in LOG.md (date, what was run, result, what changed, what I learned).
 - Small commits with clear messages. Never commit data or credentials.
