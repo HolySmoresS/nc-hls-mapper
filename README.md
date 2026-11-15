@@ -4,7 +4,7 @@
 
 **Result:** a simple near-infrared rule finds about **half of the real flood (44%)**, and about **half of what it calls flood is real (48%)**, graded against 269 spots I labeled by hand on NOAA airplane photos. It beat a textbook water index, a radar map and two machine-learning models.
 
-**Status:** Project 1, version 1 (floods) complete. Phase 2 (burn scars) is in progress: first burn maps made, not graded yet.
+**Status:** Project 1, version 1 (floods) complete. Phase 2 (burn scars) is in progress: burn maps made and graded. The best one catches 73% of the official burn and is right 84% of the time.
 
 ## Summary
 - The study area is a 23 x 17 km box around the Lumber River at Lumberton. It was the only one of three flooded river towns with a clear satellite photo soon after the storm (Sept 18, 2018, four days after landfall).
@@ -166,14 +166,54 @@ The official outline holds 31 km².
 - **The March 26 pair is much cleaner,** but it misses the lower-left lobe (not burned yet), and the lower cutoff adds speckles on farmland.
 - **The two maps overlap only 25%.** Almost everything April flags, March 26 flags too (6.2 of 7.7 km²).
 - **The April burn is still visible to the eye:** pale and red inside a deep-blue forest. It stands out against its neighbors, which is the idea for the next step.
-- **Not graded yet.** The outline is drawn for the eye only.
+- The outline is drawn here for the eye only. The grades are in Step 9.
+
+### Step 9: grading, and two fixes for the leaf season
+Answer key: the official outline. "Caught" is the share of the outline a map flagged. "Right" is the share of its flags that fall inside the outline.
+
+Two fixes for the April problem. Both ask whether a pixel's score fell 0.10 *more than normal*; they differ in what "normal" means. The rules were fixed before any score was computed.
+- **Fix A, look-alikes:** normal = the typical change of pixels with a similar burn score before the fire, anywhere in the box (20 groups). It never uses the outline.
+- **Fix B, ring:** normal = the typical change in a ring 300 m to 2 km outside the outline. This is what the national archive (MTBS) does, and it uses the answer key to build the map.
+
+![What normal change looks like for each kind of pixel](figures/09_normal_change.png)
+
+In April, leafless pixels greened up by about 0.2 and evergreens by only 0.05. In the March 26 pair nothing moved.
+
+| Pair | Map | Caught | Right | F1 |
+|---|---|---|---|---|
+| April | textbook cutoff | 16% | 99% | 0.27 |
+| April | histogram cutoff | 26% | 94% | 0.41 |
+| April | fix A, look-alikes | 42% | 26% | 0.32 |
+| April | fix B, ring | 37% | 32% | 0.34 |
+| March 26 | textbook cutoff | 61% | 96% | 0.75 |
+| **March 26** | **histogram cutoff** | **73%** | **84%** | **0.78** |
+| March 26 | fix A, look-alikes | 65% | 94% | 0.77 |
+| March 26 | fix B, ring | 64% | 94% | 0.76 |
+
+Overall accuracy is useless again: only 10% of the box burned, so "say nothing burned" scores about 90%.
+
+![Caught and right for every burn map](figures/09_burn_scores.png)
+
+![Every burn map colored by outcome](figures/09_burn_map_outcomes.png)
+
+- **Both fixes failed on the April pair.** They catch more of the burn, but about three of every four flags are wrong.
+- **The false alarms sit along the mountain ridges.** Likely reason (not proven): higher ground greens up later in spring, so on April 12 the ridges had not leafed out. To a "greened up less than normal" rule, that looks like a burn. I did not load height data to test this.
+- **Fix A did not beat fix B.** The before-fire score separates fields from pines, but not a ridge from a valley.
+- **On the March 26 pair the fixes change almost nothing,** because unburned land barely moved in 8 days.
+- **Timing beat method.** A photo taken days after the fire, before the leaves came out, gave a far better map than any correction applied to a later photo.
+
+Limits of this grading:
+- Patches inside a fire outline often did not burn, so 100% caught is not possible.
+- The March 26 grade is unfair to that map: the fire grew until about March 31, and ground that burned later counts as "missed".
+- The April pair cannot see 11% of the outline (cloud).
+- Fix B is not independent of the answer key.
 
 ## Next steps
 1. Label more spots to narrow the ranges.
 2. Try the rule on Cape Fear (Fayetteville), which was 79% clear on the same day.
 3. Remove dark plowed fields from the rule, tested on fresh labels.
 4. Longer-wave airborne radar (NASA UAVSAR flew the Lumber River on Sept 18-23, 2018) can see water under trees.
-5. Burn scars (in progress): grade the four burn maps against the official outline, and test a correction for the season: compare each pixel with nearby unburned forest instead of with zero.
+5. Burn scars (in progress): test the guess that late green-up on high ground causes the April false alarms (needs height data); try joining the March 26 map with an April map for the part that burned later.
 
 ## Project layout
 | Path | What it is |
@@ -189,6 +229,7 @@ The official outline holds 31 km².
 | `src/fires.py` | Burn phase: candidate fires, official outlines, study boxes |
 | `src/07_find_fire_photos.py` | Step 7: clear photos per fire box; first look at the scar |
 | `src/08_burn_maps.py` | Step 8: NBR, dNBR and burn maps from two pairs of photos |
+| `src/09_grade_burn_maps.py` | Step 9: grades against the official outline; two leaf-season fixes |
 | `notebooks/` | The same steps as notebooks, with explanations |
 | `figures/`, `results/` | Saved pictures and result tables (my labels: `results/04_labels.csv`) |
 | `LOG.md` | Experiment log: every step, its result, and what I learned |
@@ -205,6 +246,7 @@ python3.12 -m venv .venv                      # private package folder for this 
 .venv/bin/python src/06_machine_learning.py   # Step 6
 .venv/bin/python src/07_find_fire_photos.py   # Step 7: burn phase, choose the fire (several minutes)
 .venv/bin/python src/08_burn_maps.py          # Step 8: burn maps (a minute or two)
+.venv/bin/python src/09_grade_burn_maps.py    # Step 9: grades and fixes (a minute or two)
 ```
 Step 4 (only for new labels): run `src/04_make_label_sample.py` once, then `src/04_label_server.py` and open http://localhost:8765. Steps 5 and 6 use my saved labels in `results/04_labels.csv` when no new labels exist.
 

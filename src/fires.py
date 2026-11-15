@@ -108,14 +108,25 @@ def box_around(geom, margin_km=MARGIN_KM):
 
 
 
-def outline_mask(geom, band):
-    """True for every pixel of a photo band that lies inside the outline.
-
-    The outline is in longitude/latitude; the photo uses a metre grid, so the outline is converted first.
-    """
+def on_grid(geom, band):
+    """Move a longitude/latitude shape onto a photo's metre grid, so distances are in metres."""
     t = Transformer.from_crs("EPSG:4326", band.rio.crs, always_xy=True)
-    moved = shapely.transform(geom, lambda xy: np.column_stack(t.transform(xy[:, 0], xy[:, 1])))
-    return geometry_mask([moved], out_shape=band.shape, transform=band.rio.transform(), invert=True)
+    return shapely.transform(geom, lambda xy: np.column_stack(t.transform(xy[:, 0], xy[:, 1])))
+
+
+def outline_mask(geom, band):
+    """True for every pixel of a photo band that lies inside the outline."""
+    return geometry_mask([on_grid(geom, band)], out_shape=band.shape, transform=band.rio.transform(), invert=True)
+
+
+def ring_mask(geom, band, inner_m=300, outer_m=2000):
+    """True for pixels in a ring just OUTSIDE the outline: unburned neighbors of the fire.
+
+    The first 300 m are skipped, because the true edge of a fire is fuzzy.
+    """
+    moved = on_grid(geom, band)
+    ring = moved.buffer(outer_m).difference(moved.buffer(inner_m))
+    return geometry_mask([ring], out_shape=band.shape, transform=band.rio.transform(), invert=True)
 
 
 def triangle_cutoff(values, width=0.01, tail_pct=99.9):
