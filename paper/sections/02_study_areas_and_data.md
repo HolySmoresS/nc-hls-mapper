@@ -1,4 +1,4 @@
-<!-- DRAFT 2 (Nov 15, 2026). Plainer wording after my first explain-back. Not final until I can explain it back. Every number has its source file in a comment. -->
+<!-- DRAFT 2 (Nov 15, 2026). Explain-back PASSED (second try, Nov 15). Content final; still to trim toward 0.75 page once all sections exist. Every number has its source file in a comment. -->
 
 ## 2. Study areas and data
 
@@ -53,9 +53,6 @@ I used four kinds of light: green, NIR, and two shortwave-infrared bands. Each H
 ---
 
 ### Notes for me (delete before final)
-**Explain back, out loud:**
-1. What does the satellite do, and what does my code do?
-2. Why measure the clear share over the whole box?
-3. Why must the before and after photos come from the same satellite?
+**Explain-back passed (Nov 15).** Still to do: trim toward 0.75 page at the end.
 
 **Moved out of this section:** the band-name table (B03, B8A ...) goes to Methods or an appendix. The "auto-generated vs certified" outline note goes to Limits.
