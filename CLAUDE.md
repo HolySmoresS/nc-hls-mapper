@@ -32,7 +32,8 @@ Map flood water from Hurricane Florence (September 2018) in eastern North Caroli
 - Bands differ by satellite. Sentinel-2 (S30): green B03, NIR B8A, SWIR1 B11, SWIR2 B12. Landsat (L30): green B03, NIR B05, SWIR1 B06, SWIR2 B07. Fmask band = cloud/shadow/water flags. Reflectance scale factor 0.0001.
 - Method, in order: (1) water index (NDWI, MNDWI) + a cutoff = baseline; (2) flood = water after the storm that was not water before; (3) later, machine learning on labeled pixels, which must beat the baseline.
 - Clouds are the main known risk: right after a hurricane, many scenes are cloudy. Always check and report cloud cover.
-- Study area: NOT chosen yet (candidates: Lumber, Neuse or Cape Fear river floodplains). Exact dates of river peaks still to be checked. Ask me before choosing.
+- Study area (chosen Nov 14, 2026): Lumber River at Lumberton, box (-79.15, 34.55, -78.90, 34.70), tile T17SPU. Key photos: Sentinel-2 Sept 18, 2018 (after, 86% clear); Landsat Aug 25 (100%) and Sentinel-2 Sept 6 (92%) as "before". Cape Fear (Fayetteville) Sept 18 was 79% clear: a possible second test area later.
+- Clear share is always measured over the WHOLE box (a tile can cover only a sliver of it).
 - How to check accuracy (reference map or hand-labeled pixels): NOT chosen yet. Ask me before choosing.
 
 ## Milestones
@@ -43,8 +44,9 @@ Map flood water from Hurricane Florence (September 2018) in eastern North Caroli
 5. Later: burn-scar mapping (NBR / dNBR) on a western NC wildfire with the same code.
 
 ## Current status (updated Nov 14, 2026)
-- Kickoff only. Folder, git repo, .venv (Python 3.12) and packages set up. No data downloaded, no code yet.
-- NEXT: I create my Earthdata account; then Week 1, starting with choosing the study area.
+- Set up: folder, git repo, .venv (Python 3.12), packages. Earthdata account made and login saved in ~/.netrc (done by me).
+- Step 1 DONE: src/01_find_clear_photos.py + notebooks/01_find_clear_photos.ipynb counted clear photos per river; chose the Lumber River.
+- NEXT: rest of Week 1: normal-color pictures before (Aug 25 / Sept 6) and after (Sept 18), then Week 2 water index. How to check accuracy is still NOT chosen; ask me.
 
 ## Layout and running code
 - `src/hls.py` shared helpers; numbered scripts in `src/`; matching executed notebooks in `notebooks/`; plots in `figures/`; data in `data/` (git-ignored).
