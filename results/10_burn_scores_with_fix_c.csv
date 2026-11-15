@@ -1,0 +1,11 @@
+pair,map,flagged km2,caught,right,F1,false alarms km2,overall accuracy
+April,textbook,4.4,0.157,0.993,0.272,0.0,0.907
+April,histogram,7.7,0.262,0.939,0.409,0.5,0.917
+April,fix A: look-alikes,45.3,0.422,0.257,0.32,33.6,0.803
+April,fix B: ring,31.0,0.366,0.325,0.344,21.0,0.847
+April,fix C: look-alikes + height,29.8,0.522,0.484,0.502,15.4,0.886
+March 26,textbook,19.8,0.613,0.958,0.747,0.8,0.959
+March 26,histogram,26.9,0.728,0.839,0.779,4.3,0.96
+March 26,fix A: look-alikes,21.2,0.646,0.944,0.767,1.2,0.962
+March 26,fix B: ring,21.0,0.641,0.945,0.764,1.1,0.961
+March 26,fix C: look-alikes + height,21.1,0.644,0.944,0.766,1.2,0.961

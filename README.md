@@ -208,12 +208,36 @@ Limits of this grading:
 - The April pair cannot see 11% of the outline (cloud).
 - Fix B is not independent of the answer key.
 
+### Step 10: testing the ridge guess with height data
+The guess from Step 9: higher ground greens up later, so on April 12 the ridges looked "less green than normal" and were mistaken for a burn. I loaded NASA's height map (NASADEM, 30 m) and wrote the tests down before looking at any result.
+
+![Height map with false alarms, change by height, and false-alarm rates](figures/10_ridge_check.png)
+
+- **Test 2, where the false alarms are:** on the highest ground (above 687 m) fix A flagged 44% of unburned pixels. Below 500 m it flagged 1 to 2%.
+- **Test 1, green-up by height (unburned land only):** from about 430 m upward, higher ground greened up less and less (typical dNBR from -0.38 to -0.06). Below 430 m the pattern reverses, which I have not explained.
+- **A rival explanation, the way a slope faces:** north-facing slopes got about half as many false alarms (11%) as the others (21 to 26%). It matters too, but much less than height.
+
+**Fix C:** look-alike groups by score before the fire *and* height (10 x 5 groups), same "0.10 more than normal" rule.
+
+| April pair map | Caught | Right | F1 |
+|---|---|---|---|
+| Plain histogram cutoff | 26% | 94% | 0.41 |
+| Fix A, look-alikes | 42% | 26% | 0.32 |
+| **Fix C, look-alikes + height** | **52%** | **48%** | **0.50** |
+
+![Fix A next to fix C, and their grades](figures/10_fix_c.png)
+
+- **The guess holds,** and it is now measured: late green-up on high ground explains most of the false alarms.
+- **Fix C is the best April map,** but it is still far behind the March 26 map (73% / 84%). Half of its flags are still wrong.
+- **Not a fresh exam:** fix C was designed after seeing where fix A failed against the outline.
+- On the March 26 pair fix C changes nothing, as expected.
+
 ## Next steps
 1. Label more spots to narrow the ranges.
 2. Try the rule on Cape Fear (Fayetteville), which was 79% clear on the same day.
 3. Remove dark plowed fields from the rule, tested on fresh labels.
 4. Longer-wave airborne radar (NASA UAVSAR flew the Lumber River on Sept 18-23, 2018) can see water under trees.
-5. Burn scars (in progress): test the guess that late green-up on high ground causes the April false alarms (needs height data); try joining the March 26 map with an April map for the part that burned later.
+5. Burn scars (in progress): add the way a slope faces to the look-alike groups; join the March 26 map with an April map for the part that burned later; test the whole recipe on a second fire.
 
 ## Project layout
 | Path | What it is |
@@ -230,6 +254,7 @@ Limits of this grading:
 | `src/07_find_fire_photos.py` | Step 7: clear photos per fire box; first look at the scar |
 | `src/08_burn_maps.py` | Step 8: NBR, dNBR and burn maps from two pairs of photos |
 | `src/09_grade_burn_maps.py` | Step 9: grades against the official outline; two leaf-season fixes |
+| `src/terrain.py`, `src/10_ridge_check.py` | Step 10: NASA height data; is late green-up on high ground the cause? |
 | `notebooks/` | The same steps as notebooks, with explanations |
 | `figures/`, `results/` | Saved pictures and result tables (my labels: `results/04_labels.csv`) |
 | `LOG.md` | Experiment log: every step, its result, and what I learned |
@@ -247,6 +272,7 @@ python3.12 -m venv .venv                      # private package folder for this 
 .venv/bin/python src/07_find_fire_photos.py   # Step 7: burn phase, choose the fire (several minutes)
 .venv/bin/python src/08_burn_maps.py          # Step 8: burn maps (a minute or two)
 .venv/bin/python src/09_grade_burn_maps.py    # Step 9: grades and fixes (a minute or two)
+.venv/bin/python src/10_ridge_check.py        # Step 10: height check (a minute or two)
 ```
 Step 4 (only for new labels): run `src/04_make_label_sample.py` once, then `src/04_label_server.py` and open http://localhost:8765. Steps 5 and 6 use my saved labels in `results/04_labels.csv` when no new labels exist.
 
@@ -257,6 +283,7 @@ Data needs a free NASA Earthdata account (https://urs.earthdata.nasa.gov). Sign 
 - **Sentinel-1 radar:** contains modified Copernicus Sentinel data (2018), processed by ESA; terrain-corrected with ASF HyP3 (Alaska Satellite Facility).
 - **NOAA National Geodetic Survey** Hurricane Florence emergency response imagery (Sept 19-20, 2018).
 - **Fire outlines:** NIFC WFIGS Interagency Fire Perimeters (Black Cove Complex) and USDA Forest Service / USGS Monitoring Trends in Burn Severity (Tellico, Great Lakes).
+- **Ground height:** NASADEM (NASA JPL), from NASA's LP DAAC.
 - No data files are stored in this repo.
 
 ## Related
